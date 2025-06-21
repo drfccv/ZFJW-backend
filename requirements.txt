@@ -1,0 +1,7 @@
+Flask
+flask-cors
+requests
+# 以下为 zfn_api 依赖
+lxml
+pillow
+pyquery
