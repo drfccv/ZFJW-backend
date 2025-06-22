@@ -778,6 +778,131 @@ class Client:
             traceback.print_exc()
             return {"code": 999, "msg": "获取成绩时未记录的错误：" + str(e)}
 
+    def get_grade_detail(self, year: int, term: int = 0, school_name: Optional[str] = None, base_url: Optional[str] = None):
+        """
+        获取详细成绩（含平时分、期末分等细节）
+        参数:
+            year: 学年，如2024
+            term: 学期，1-第一学期，2-第二学期，0-整个学年
+            school_name: 学校名称（可选）
+            base_url: 基础URL（可选）
+        """
+        try:
+            # 从配置获取详细成绩查询URL
+            url = self.get_school_url('grade_detail', None, school_name, base_url)
+            # 如果配置的URL不包含doType=query，则添加
+            if 'doType=query' not in url:
+                # 将layout=default改为doType=query
+                if 'layout=default' in url:
+                    url = url.replace('layout=default', 'doType=query')
+                else:
+                    separator = '&' if '?' in url else '?'
+                    url = f"{url}{separator}doType=query"
+        except ValueError:
+            # 如果配置获取失败，使用默认URL
+            fallback_base = base_url or self.base_url or ""
+            url = f"{fallback_base.rstrip('/')}/cjcx/cjcx_cxXsKccjList.html?doType=query&gnmkdm=N305007"
+        
+        # 学期参数转换
+        if term == 1:
+            term_param = "3"    # 第一学期为3
+        elif term == 2:
+            term_param = "12"   # 第二学期为12
+        else:
+            term_param = ""     # 整个学年为空
+        
+        # 构建请求数据
+        data = {
+            "xnm": str(year),  # 学年数
+            "xqm": term_param,  # 学期数，第一学期为3，第二学期为12, 整个学年为空''
+            "_search": "false",
+            "nd": int(time.time() * 1000),
+            "queryModel.showCount": "100",  # 每页最多条数
+            "queryModel.currentPage": "1",
+            "queryModel.sortName": "",
+            "queryModel.sortOrder": "asc",
+            "time": "0",  # 查询次数
+        }
+        
+        # 构建请求头
+        detail_headers = self.headers.copy()
+        try:
+            target_base_url = self.get_school_base_url(school_name, base_url)
+            # 构建Referer URL
+            referer_url = self.get_school_url('grade_detail', None, school_name, base_url)
+            if 'doType=query' in referer_url:
+                referer_url = referer_url.replace('doType=query', 'layout=default')
+        except ValueError:
+            target_base_url = self.base_url.rstrip('/') if self.base_url else ''
+            referer_url = f'{target_base_url}/cjcx/cjcx_cxXsKccjList.html?gnmkdm=N305007&layout=default'
+        
+        base_origin = target_base_url.rstrip('/')
+        
+        detail_headers.update({
+            'Accept': 'application/json, text/javascript, */*; q=0.01',
+            'Accept-Encoding': 'gzip, deflate, br, zstd',
+            'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6',
+            'Cache-Control': 'no-cache',
+            'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+            'DNT': '1',
+            'Origin': base_origin,
+            'Pragma': 'no-cache',
+            'Referer': referer_url,
+            'Sec-CH-UA': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+            'Sec-CH-UA-Mobile': '?0',
+            'Sec-CH-UA-Platform': '"Windows"',
+            'Sec-Fetch-Dest': 'empty',
+            'Sec-Fetch-Mode': 'cors',
+            'Sec-Fetch-Site': 'same-origin',
+            'X-Requested-With': 'XMLHttpRequest'
+        })
+        
+        try:
+            print(f"详细成绩查询 - URL: {url}")
+            print(f"详细成绩查询 - 数据: {data}")
+            
+            req_grade = self.sess.post(
+                url,
+                headers=detail_headers,
+                data=data,
+                timeout=self.timeout,
+            )
+            
+            print(f"详细成绩查询 - 响应状态码: {req_grade.status_code}")
+            
+            if req_grade.status_code != 200:
+                return {"code": 2333, "msg": f"教务系统响应异常，状态码: {req_grade.status_code}"}
+            
+            # 检查是否被重定向到登录页面
+            doc = pq(req_grade.text)
+            if doc("h5").text() == "用户登录":
+                return {"code": 1013, "msg": "登录过期，请重新登录"}
+            
+            # 解析JSON响应
+            try:
+                grade_response = req_grade.json()
+                print(f"详细成绩查询 - JSON解析成功")
+            except json.JSONDecodeError as json_err:
+                print(f"详细成绩查询 - JSON解析失败: {json_err}")
+                print(f"详细成绩查询 - 原始响应前500字符: {req_grade.text[:500]}")
+                return {"code": 2333, "msg": f"响应格式错误: {str(json_err)}"}
+            
+            # 检查是否有数据
+            if not grade_response.get("items"):
+                return {"code": 1005, "msg": "获取内容为空"}
+            
+            # 直接返回原始响应数据，不进行处理
+            return {"code": 1000, "msg": "获取详细成绩成功", "data": grade_response}
+            
+        except exceptions.Timeout:
+            return {"code": 1003, "msg": "获取详细成绩超时"}
+        except exceptions.RequestException:
+            traceback.print_exc()
+            return {"code": 2333, "msg": "请重试或教务系统维护中"}
+        except Exception as e:
+            traceback.print_exc()
+            return {"code": 999, "msg": "获取详细成绩时未记录的错误：" + str(e)}
+
     def get_exam_schedule(self, year: int, term: int = 0, school_name: Optional[str] = None, base_url: Optional[str] = None):
         """获取考试信息"""
         try:
@@ -862,7 +987,8 @@ class Client:
                         "sjbh": i.get("sjbh"), # 试卷编号
                         "bz": i.get("bz1", ""), # 备注, ep: 免监考班级
                     }
-                    for i in grade_items                ],
+                    for i in grade_items
+                ],
             }
             return {"code": 1000, "msg": "获取考试信息成功", "data": result}
         except exceptions.Timeout:

@@ -7,9 +7,10 @@
     "urls": {
       "login": "jwglxt/xtgl/login_slogin.html",
       "key": "jwglxt/xtgl/login_getPublicKey.html",        
-      "kaptcha": "jwglxt/kaptcha",
+      "kaptcha": "jwglxt/kaptcha",      
       "info": "jwglxt/xsxxxggl/xsxxwh_cxCkDgxsxx.html?gnmkdm=N100801",
       "grade": "jwglxt/cjcx/cjcx_cxXsgrcj.html?doType=query&gnmkdm=N305005",
+      "grade_detail": "jwglxt/cjcx/cjcx_cxXsKccjList.html?gnmkdm=N305007&layout=default",
       "exam": "jwglxt/kwgl/kscx_cxXsksxxIndex.html?doType=query&gnmkdm=N358105",      
       "schedule": "jwglxt/kbcx/xskbcx_cxXsgrkb.html?gnmkdm=N2151",
       "schedule_index": "jwglxt/kbcx/xskbcx_cxXskbcxIndex.html?gnmkdm=N2151&layout=default",
@@ -53,9 +54,10 @@
     "urls": {
       "login": "xtgl/login_slogin.html",
       "key": "xtgl/login_getPublicKey.html",
-      "kaptcha": "kaptcha",
+      "kaptcha": "kaptcha",      
       "info": "xsxxxggl/xsxxwh_cxCkDgxsxx.html?gnmkdm=N100801",
       "grade": "cjcx/cjcx_cxDgXscj.html?gnmkdm=N305005&layout=default",
+      "grade_detail": "cjcx/cjcx_cxXsKccjList.html?gnmkdm=N305007&layout=default",
       "exam": "kwgl/kscx_cxXsksxxIndex.html?gnmkdm=N358105&layout=default",
       "schedule": "kbcx/xskbcx_cxXsgrkb.html?gnmkdm=N2151",
       "schedule_index": "kbcx/xskbcx_cxXskbcxIndex.html?gnmkdm=N2151&layout=default",

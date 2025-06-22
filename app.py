@@ -249,6 +249,41 @@ def get_exam():
     result = stu.get_exam_schedule(year, term, school_name=school_name, base_url=base_url)
     return jsonify(result)
 
+# 详细成绩查询（含平时分）
+@app.route('/api/grade_detail', methods=['POST'])
+@handle_errors
+def get_grade_detail():
+    """
+    详细成绩查询接口，用于查询期末成绩（含平时分）
+    请求参数:
+        cookies: 登录后的cookies
+        year: 学年，如2024
+        term: 学期，1-第一学期，2-第二学期，0-整个学年
+        school_name: 学校名称（可选，用于自动获取base_url）
+        base_url: 学校教务系统地址（可选，如果提供school_name则自动获取）
+    """
+    data = request.json
+    cookies = data.get('cookies')
+    year = data.get('year')
+    term = data.get('term', 0)  # 默认为整个学年
+    
+    # 使用统一的参数校验获取base_url
+    base_url, error_response = get_base_url_from_params(data)
+    if error_response:
+        return error_response
+    
+    if not all([cookies, year]):
+        return jsonify({"code": 400, "msg": "参数不完整，需要 cookies, year 和 (base_url 或 school_name)"})
+    
+    print(f"详细成绩查询 - 使用URL: {base_url}")
+    
+    # 获取school_name参数
+    school_name = data.get('school_name')
+    
+    stu = Client(cookies=cookies, base_url=base_url, school_name=school_name, raspisanie=RASPISANIE, ignore_type=IGNORE_TYPE, detail_category_type=DETAIL_CATEGORY_TYPE, timeout=TIMEOUT)
+    result = stu.get_grade_detail(year, term, school_name=school_name, base_url=base_url)
+    return jsonify(result)
+
 # 课表
 @app.route('/api/schedule', methods=['POST'])
 @handle_errors
@@ -776,6 +811,18 @@ def check_captcha_required(school_name):
         })
 
 if __name__ == '__main__':
+    # 检查是否在生产环境
+    is_production = os.environ.get('FLASK_ENV') == 'production'
+    debug_mode = not is_production
+    
     print("启动 ZFJW Backend API 服务...")
+    print(f"运行模式: {'生产环境' if is_production else '开发环境'}")
     print("健康检查: http://localhost:5000/api/health")
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    
+    if is_production:
+        print("生产环境建议使用uWSGI启动:")
+        print("  uwsgi --ini uwsgi.ini")
+        print("或者:")
+        print("  python wsgi.py")
+    
+    app.run(host='0.0.0.0', port=5000, debug=debug_mode)
