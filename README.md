@@ -40,7 +40,7 @@
 
 1. **克隆项目**
    ```bash
-   git clone https://github.com/your-username/ZFJW-backend.git
+   git clone https://github.com/drfccv/ZFJW-backend.git
    cd ZFJW-backend
    ```
 
@@ -91,7 +91,7 @@ ZFJW-backend/
 
 本项目提供完整的 RESTful API 接口，支持用户认证、数据查询等功能。
 
-**📖 完整 API 文档请查看：[API 文档](docs/api.md)**
+**📖 完整 API 文档请查看：[API 文档](api.md)**
 
 ### 快速预览
 - **Base URL**: `http://localhost:5000/api`
