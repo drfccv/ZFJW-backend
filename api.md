@@ -442,6 +442,188 @@
 
 ---
 
+### 11. 教学评价接口
+
+#### 说明
+本系统支持正方教务系统的教学质量评价功能，所有评价相关URL均通过 schools_config.json 配置，无硬编码。接口调用流程如下：
+1. 通过 `/api/evaluate_menu` 获取可评价课程列表（POST请求，返回JSON格式）。
+2. 通过 `/api/evaluate_detail` 获取某门课程的评价详情（需要jxb_id参数）。
+3. 通过 `/api/evaluate_save` 保存评价内容（可多次保存，未提交前可修改）。
+4. 通过 `/api/evaluate_submit` 提交评价（不可撤回）。
+
+#### POST `/api/evaluate_menu`
+获取可评价课程列表
+
+**请求参数**:
+```json
+{
+  "cookies": "登录凭证",
+  "school_name": "九江学院"
+}
+```
+**响应示例**:
+```json
+{
+  "code": 1000,
+  "msg": "获取评价菜单成功",
+  "data": {
+    "courses": [
+      {
+        "course_id": "D9AE3A910643B14BE0530BECC1DA0713",
+        "course_name": "大学生创新创业基础",
+        "teacher": "黄细洋",
+        "class_name": "(2024-2025-2)-6171110011-61",
+        "classroom": "文友楼404",
+        "time": "星期一第1-2节{1-8周}",
+        "college": "管理学院",
+        "status": "未评",
+        "jxb_id": "273C08F0CB93EE59E0630BECC1DACDF8",
+        "evaluate_url": "https://zhjw1.jju.edu.cn/jwglxt/xspjgl/xspj_cxXspjIndex.html?..."
+      }
+    ],
+    "total": 8,
+    "current_page": 1,
+    "total_pages": 1
+  }
+}
+```
+
+#### POST `/api/evaluate_detail`
+获取某门课程的评价详情
+
+**说明**:
+- 该接口会返回课程的评价详情，包括评价项目列表
+- 根据 `is_evaluated` 字段判断课程是否已评价：
+  - `is_evaluated: false` - 未评价状态，`evaluation_items` 中包含输入框信息
+  - `is_evaluated: true` - 已评价状态，`evaluation_items` 中显示已评价的分数
+- 已评价的课程无法再次评价
+
+**请求参数**:
+```json
+{
+  "cookies": "登录凭证",
+  "jxb_id": "273C08F0CB93EE59E0630BECC1DACDF8",
+  "school_name": "九江学院"
+}
+```
+**响应示例**:
+
+**未评价状态**:
+```json
+{
+  "code": 1000,
+  "msg": "获取评价详情成功",
+  "data": {
+    "action": "/jwglxt/xspjgl/xspj_cxXspjDisplay.html",
+    "course_name": "大学生创新创业基础",
+    "teacher_name": "黄细洋",
+    "jxb_id": "273C08F0CB93EE59E0630BECC1DACDF8",
+    "kch_id": "D9AE3A910643B14BE0530BECC1DA0713",
+    "is_evaluated": false,
+    "evaluation_items": [
+      {
+        "content": "教学态度端正，教学准备充分，授课精神饱满、严谨认真。",
+        "input_name": "input_name_1",
+        "min_score": 30,
+        "max_score": 100,
+        "placeholder": "打分范围:30-100",
+        "current_value": "",
+        "has_input": true,
+        "pjzbxm_id": "385E7A0A98CAE8EFE0630AECC1DA9F1E"
+      }
+    ],
+    "comment_name": "py",
+    "comment_max_length": 500
+  }
+}
+```
+
+**已评价状态**:
+```json
+{
+  "code": 1000,
+  "msg": "获取评价详情成功",
+  "data": {
+    "action": "/jwglxt/xspjgl/xspj_cxXspjDisplay.html",
+    "course_name": "大学生创新创业基础",
+    "teacher_name": "黄细洋",
+    "jxb_id": "273C08F0CB93EE59E0630BECC1DACDF8",
+    "kch_id": "D9AE3A910643B14BE0530BECC1DA0713",
+    "is_evaluated": true,
+    "evaluation_items": [
+      {
+        "content": "教学态度端正，教学准备充分，授课精神饱满、严谨认真。",
+        "score": "98",
+        "has_input": false,
+        "pjzbxm_id": "385E7A0A98CAE8EFE0630AECC1DA9F1E"
+      }
+    ],
+    "comment_name": "py",
+    "comment_max_length": 500
+  }
+}
+```
+
+#### POST `/api/evaluate_save`
+保存评价内容
+
+**请求参数**:
+```json
+{
+  "cookies": "登录凭证",
+  "action_url": "/jwglxt/xspjgl/xspj_cxXspjDisplay.html",
+  "jxb_id": "273C08F0CB93EE59E0630BECC1DACDF8",
+  "kch_id": "D9AE3A910643B14BE0530BECC1DA0713",
+  "evaluation_data": {
+    "items": [
+      {
+        "input_name": "input_name_1",
+        "score": 85
+      }
+    ]
+  },
+  "comment": "老师讲课很认真，内容充实"
+}
+```
+**响应示例**:
+```json
+{
+  "code": 1000,
+  "msg": "保存成功"
+}
+```
+
+#### POST `/api/evaluate_submit`
+提交评价
+
+**请求参数**:
+```json
+{
+  "cookies": "登录凭证",
+  "school_name": "九江学院",
+  "jxb_id": "273C08F0CB93EE59E0630BECC1DACDF8",
+  "kch_id": "D9AE3A910643B14BE0530BECC1DA0713",
+  "evaluation_data": {
+    "items": [
+      { "input_name": "input_name_1", "score": 85 },
+      { "input_name": "input_name_2", "score": 90 }
+    ]
+  },
+  "comment": "老师讲课很认真，内容充实"
+}
+```
+> ⚠️ `action_url` 由后端自动查找，无需前端传递。前端只需传分数、评语等内容，后端会自动组装所有必填参数并严格按官方格式提交。
+
+**响应示例**:
+```json
+{
+  "code": 1000,
+  "msg": "提交成功"
+}
+```
+
+---
+
 ## 📝 通用响应格式
 
 ### 成功响应

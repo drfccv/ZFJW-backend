@@ -24,7 +24,11 @@
       "select_course": "jwglxt/xsxk/zzxkyzb_xkBcZyZzxkYzb.html?gnmkdm=N253512",        
       "drop_course": "jwglxt/xsxk/zzxkyzb_tuikBcZzxkYzb.html?gnmkdm=N253512",
       "schedule_pdf": "jwglxt/kbdy/bjkbdy_cxXnxqsfkz.html?gnmkdm=N2151",
-      "academia_pdf": "jwglxt/bysxxcx/xscjzbdy_dyXscjzbView.html"
+      "academia_pdf": "jwglxt/bysxxcx/xscjzbdy_dyXscjzbView.html",
+      "evaluate": "jwglxt/xspjgl/xspj_cxXspjIndex.html?doType=query&gnmkdm=N401605",
+      "evaluate_detail": "jwglxt/xspjgl/xspj_cxXspjDisplay.html?gnmkdm=N401605",
+      "evaluate_submit": "jwglxt/xspjgl/xspj_tjXspj.html?gnmkdm=N401605",
+      "evaluate_save": "jwglxt/xspjgl/xspj_bcXspj.html?gnmkdm=N401605"
     },
     "parameters": {
       "grade_year_offset": -1,
@@ -71,7 +75,11 @@
       "select_course": "xsxk/zzxkyzb_xkBcZyZzxkYzb.html?gnmkdm=N253512",        
       "drop_course": "xsxk/zzxkyzb_tuikBcZzxkYzb.html?gnmkdm=N253512",
       "schedule_pdf": "kbdy/bjkbdy_cxXnxqsfkz.html?gnmkdm=N2151",
-      "academia_pdf": "bysxxcx/xscjzbdy_dyXscjzbView.html"
+      "academia_pdf": "bysxxcx/xscjzbdy_dyXscjzbView.html",
+      "evaluate": "xspjgl/xspj_cxXspjIndex.html?doType=query&gnmkdm=N401605",
+      "evaluate_detail": "xspjgl/xspj_cxXspjDisplay.html?gnmkdm=N401605",
+      "evaluate_submit": "xspjgl/xspj_tjXspj.html?gnmkdm=N401605",
+      "evaluate_save": "xspjgl/xspj_bcXspj.html?gnmkdm=N401605"
     },
     "parameters": {
       "grade_year_offset": -1,
