@@ -628,50 +628,43 @@ class Client:
         """
         获取成绩
         use_personal_info: 是否使用获取个人信息接口获取成绩
-        """        # 根据学校配置获取成绩查询URL
+        """
         try:
             # 首先尝试从配置获取grade URL
             url = self.get_school_url('grade', None, school_name, base_url)
-            # 如果配置的URL不包含doType=query，则添加
             if 'doType=query' not in url:
-                # 添加doType=query参数
                 separator = '&' if '?' in url else '?'
                 url = f"{url}{separator}doType=query"
         except ValueError:
-            # 如果配置获取失败，使用默认URL
             fallback_base = base_url or self.base_url or ""
             url = f"{fallback_base.rstrip('/')}/cjcx/cjcx_cxDgXscj.html?doType=query&gnmkdm=N305005"
-            
-        temp_term = term
-        # 根据真实请求：第一学期为空或3，第二学期为12
+
+        # 根据真实请求：第一学期为3，第二学期为12，全部为空
         if term == 1:
-            term_param = ""  # 第一学期可以为空
+            term_param = "3"  # 第一学期为3
         elif term == 2:
             term_param = "12"  # 第二学期为12
         else:
-            term_param = ""  # 整个学年为空
-        
-        # 根据真实请求示例构建数据（完全按照用户提供的格式）
+            term_param = ""  # 全部学期为空
+
+        # 确保data变量已定义
         data = {
-            "xnm": str(year),  # 学年数，如2024
-            "xqm": term_param,  # 学期数，第一学期为空或3，第二学期为12
+            "xnm": str(year) if year else "",  # 学年数，允许为空
+            "xqm": term_param,  # 学期数
             "sfzgcj": "",  # 是否重考成绩
             "kcbj": "",    # 课程标记
             "_search": "false",
             "nd": int(time.time() * 1000),  # 时间戳
-            "queryModel.showCount": "15",  # 每页最多条数
+            "queryModel.showCount": "1000",  # 每页最多条数，避免翻页
             "queryModel.currentPage": "1",
             "queryModel.sortName": " ",  # 注意这里是空格
             "queryModel.sortOrder": "asc",
             "time": "0",  # 查询次数
-        }        # 构建完整的headers，完全模拟真实浏览器请求
+        }
         grade_headers = self.headers.copy()
-          # 构建正确的base_url和Referer，确保使用正确的学校配置
         try:
             target_base_url = self.get_school_base_url(school_name, base_url)
-            # 构建成绩查询页面的Referer URL（使用配置的URL，但改为layout=default）
             referer_url = self.get_school_url('grade', None, school_name, base_url)
-            # 将doType=query改为layout=default用作Referer
             if '?doType=query' in referer_url:
                 referer_url = referer_url.replace('?doType=query', '?layout=default')
             elif '&doType=query' in referer_url:
@@ -679,12 +672,9 @@ class Client:
             elif '?' not in referer_url:
                 referer_url = f"{referer_url}?layout=default"
         except ValueError:
-            # 如果获取失败，使用实例的base_url作为备选
             target_base_url = self.base_url.rstrip('/') if self.base_url else ''
             referer_url = f'{target_base_url}/cjcx/cjcx_cxDgXscj.html?gnmkdm=N305005&layout=default'
-        
         base_origin = target_base_url.rstrip('/')
-        
         grade_headers.update({
             'Accept': 'application/json, text/javascript, */*; q=0.01',
             'Accept-Encoding': 'gzip, deflate, br, zstd',
@@ -703,12 +693,10 @@ class Client:
             'Sec-Fetch-Site': 'same-origin',
             'X-Requested-With': 'XMLHttpRequest'
         })
-        
         try:
             print(f"成绩查询 - URL: {url}")
             print(f"成绩查询 - 数据: {data}")
             print(f"成绩查询 - Headers: {grade_headers}")
-            
             req_grade = self.sess.post(
                 url,
                 headers=grade_headers,
@@ -745,7 +733,7 @@ class Client:
                 "sid": grade_items[0]["xh"],
                 "name": grade_items[0]["xm"],
                 "year": year,
-                "term": temp_term,
+                "term": term,
                 "count": len(grade_items),
                 "courses": [
                     {
@@ -789,33 +777,26 @@ class Client:
             base_url: 基础URL（可选）
         """
         try:
-            # 从配置获取详细成绩查询URL
             url = self.get_school_url('grade_detail', None, school_name, base_url)
-            # 如果配置的URL不包含doType=query，则添加
             if 'doType=query' not in url:
-                # 将layout=default改为doType=query
                 if 'layout=default' in url:
                     url = url.replace('layout=default', 'doType=query')
                 else:
                     separator = '&' if '?' in url else '?'
                     url = f"{url}{separator}doType=query"
         except ValueError:
-            # 如果配置获取失败，使用默认URL
             fallback_base = base_url or self.base_url or ""
             url = f"{fallback_base.rstrip('/')}/cjcx/cjcx_cxXsKccjList.html?doType=query&gnmkdm=N305007"
-        
-        # 学期参数转换
         if term == 1:
             term_param = "3"    # 第一学期为3
         elif term == 2:
             term_param = "12"   # 第二学期为12
         else:
-            term_param = ""     # 整个学年为空
-        
-        # 构建请求数据
+            term_param = ""     # 全部学期为空
+        # 确保data变量已定义
         data = {
-            "xnm": str(year),  # 学年数
-            "xqm": term_param,  # 学期数，第一学期为3，第二学期为12, 整个学年为空''
+            "xnm": str(year) if year else "",  # 学年数，允许为空
+            "xqm": term_param,  # 学期数
             "_search": "false",
             "nd": int(time.time() * 1000),
             "queryModel.showCount": "100",  # 每页最多条数
@@ -824,21 +805,16 @@ class Client:
             "queryModel.sortOrder": "asc",
             "time": "0",  # 查询次数
         }
-        
-        # 构建请求头
         detail_headers = self.headers.copy()
         try:
             target_base_url = self.get_school_base_url(school_name, base_url)
-            # 构建Referer URL
             referer_url = self.get_school_url('grade_detail', None, school_name, base_url)
             if 'doType=query' in referer_url:
                 referer_url = referer_url.replace('doType=query', 'layout=default')
         except ValueError:
             target_base_url = self.base_url.rstrip('/') if self.base_url else ''
             referer_url = f'{target_base_url}/cjcx/cjcx_cxXsKccjList.html?gnmkdm=N305007&layout=default'
-        
         base_origin = target_base_url.rstrip('/')
-        
         detail_headers.update({
             'Accept': 'application/json, text/javascript, */*; q=0.01',
             'Accept-Encoding': 'gzip, deflate, br, zstd',
@@ -857,11 +833,9 @@ class Client:
             'Sec-Fetch-Site': 'same-origin',
             'X-Requested-With': 'XMLHttpRequest'
         })
-        
         try:
             print(f"详细成绩查询 - URL: {url}")
             print(f"详细成绩查询 - 数据: {data}")
-            
             req_grade = self.sess.post(
                 url,
                 headers=detail_headers,
@@ -2065,6 +2039,7 @@ class Client:
                 timeout=self.timeout,
             )
             
+            
             if classes_response.status_code != 200:
                 print(f"[course_classes] 请求失败，状态码: {classes_response.status_code}")
                 return {"code": 2333, "msg": f"获取教学班失败，状态码: {classes_response.status_code}"}
@@ -2403,17 +2378,25 @@ class Client:
     def parse_int(cls, digits):
         if not digits:
             return None
-        if not digits.isdigit():
-            return digits
+        if isinstance(digits, str) and (digits.strip() in ["未评价", "无", "--", "-"]):
+            return None
+        if not str(digits).isdigit():
+            try:
+                return int(float(digits))
+            except Exception:
+                return None
         return int(digits)
 
     @classmethod
     def align_floats(cls, floats):
         if not floats:
             return None
-        if floats == "无":
-            return "0.0"
-        return format(float(floats), ".1f")
+        if isinstance(floats, str) and (floats.strip() in ["未评价", "无", "--", "-"]):
+            return None
+        try:
+            return format(float(floats), ".1f")
+        except Exception:
+            return None
 
     @classmethod
     def display_course_time(cls, sessions):

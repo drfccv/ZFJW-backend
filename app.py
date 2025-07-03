@@ -213,7 +213,7 @@ def get_grade():
     if error_response:
         return error_response
     
-    if not all([cookies, year, term]):
+    if not cookies or year is None or term is None:
         return jsonify({"code": 400, "msg": "参数不完整，需要 cookies, year, term 和 (base_url 或 school_name)"})
     
     print(f"成绩查询 - 使用URL: {base_url}")
