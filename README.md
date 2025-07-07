@@ -5,6 +5,7 @@
 ![License](https://img.shields.io/badge/License-MIT-yellow.svg)
 
 一个基于 `zfn_api` 的教务系统后端服务，使用 Flask 封装为 RESTful API，专为微信小程序端提供数据接口。
+![前端项目](https://github.com/drfccv/ZFJW-miniprogram)
 
 ## ✨ 特性
 
