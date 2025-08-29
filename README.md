@@ -1,10 +1,12 @@
-# 📚 ZFJW-backend: 微信小程序教务系统后端API
+# 📚 ZFJW-backend: 正方教务系统后端API
 
 ![Python](https://img.shields.io/badge/Python-3.7+-blue.svg)
 ![Flask](https://img.shields.io/badge/Flask-2.0+-green.svg)
 ![License](https://img.shields.io/badge/License-MIT-yellow.svg)
+![Build Status](https://img.shields.io/badge/Build-Passing-brightgreen.svg)
+![Docker](https://img.shields.io/badge/Docker-Supported-blue.svg)
 
-一个基于 `zfn_api` 的教务系统后端服务，使用 Flask 封装为 RESTful API，专为微信小程序端提供数据接口。
+一个基于 `zfn_api` 的正方教务系统后端服务，使用 Flask 封装为 RESTful API，支持多所高校教务数据查询，专为微信小程序和Web应用提供统一的数据接口。
 
 ## ✨ 特性
 
@@ -40,7 +42,7 @@
 
 1. **克隆项目**
    ```bash
-   git clone https://github.com/your-username/ZFJW-backend.git
+   git clone https://github.com/drfccv/ZFJW-backend.git
    cd ZFJW-backend
    ```
 
@@ -51,8 +53,8 @@
 
 3. **配置学校信息**
    ```bash
-   # 编辑 school_config.json 文件，添加你的学校配置
-   cp school_config.example.json school_config.json
+   # 项目已包含主要学校配置，可直接使用
+   # 如需添加新学校，请编辑 schools_config.json 文件
    ```
 
 4. **启动服务**
@@ -82,16 +84,23 @@ docker run -p 5000:5000 zfjw-backend
 ZFJW-backend/
 ├── app.py                 # Flask 主应用程序
 ├── zfn_api.py            # 教务系统 API 核心模块
-├── school_config.json    # 学校配置文件
+├── schools_config.json   # 学校配置文件
 ├── school_config.py      # 学校配置处理模块
-└── requirements.txt       # Python 依赖包
+├── requirements.txt      # Python 依赖包
+├── Dockerfile           # Docker 构建文件
+├── docker-compose.yml   # Docker Compose 配置
+├── uwsgi.ini           # uWSGI 配置文件
+├── wsgi.py             # WSGI 入口文件
+├── start.sh            # 启动脚本
+├── stop.sh             # 停止脚本
+└── api.md              # API 接口文档
 ```
 
 ## 🔌 API 文档
 
 本项目提供完整的 RESTful API 接口，支持用户认证、数据查询等功能。
 
-**📖 完整 API 文档请查看：[API 文档](docs/api.md)**
+**📖 完整 API 文档请查看：[API 文档](api.md)**
 
 ### 快速预览
 - **Base URL**: `http://localhost:5000/api`
@@ -101,17 +110,37 @@ ZFJW-backend/
 
 ## ⚙️ 配置说明
 
-### school_config.json 示例
+### schools_config.json 示例
 
 ```json
 {
-  "school_name": "示例大学",
-  "base_url": "http://jwxt.example.edu.cn",
-  "login_url": "/jsxsd/xk/LoginToXk",
-  "encoding": "gbk",
-  "timeout": 30
+  "九江学院": {
+    "base_url": "https://zhjw1.jju.edu.cn",
+    "school_code": "jju",
+    "description": "九江学院教务系统",
+    "requires_captcha": true,
+    "encoding": "utf-8",
+    "timeout": 30
+  },
+  "南昌职业大学": {
+    "base_url": "http://jwgl.nvu.edu.cn",
+    "school_code": "nvu", 
+    "description": "南昌职业大学教务系统",
+    "requires_captcha": false,
+    "encoding": "gbk",
+    "timeout": 30
+  }
 }
 ```
+
+### 支持的学校列表
+
+| 学校名称 | 学校代码 | 验证码要求 | 状态 |
+|---------|---------|-----------|------|
+| 九江学院 | jju | ✅ | ✅ 已支持 |
+| 南昌职业大学 | nvu | ❌ | ✅ 已支持 |
+
+> 💡 **提示**: 如需添加新学校支持，请参考贡献指南提交配置。
 
 ## 🤝 贡献指南
 
@@ -135,12 +164,13 @@ ZFJW-backend/
 
 ### 学校配置贡献
 
-如果你的学校尚未支持，欢迎提交 `school_config.json` 配置：
+如果你的学校尚未支持，欢迎提交 `schools_config.json` 配置：
 
-1. 复制 `school_config.example.json`
-2. 填写你学校的具体参数
-3. 测试功能是否正常
-4. 提交 PR 并注明学校名称
+1. 在 `schools_config.json` 中添加你学校的配置
+2. 填写学校的具体参数（base_url、编码、验证码要求等）
+3. 本地测试功能是否正常
+4. 提交 PR 并注明学校名称和测试结果
+5. 提供学校教务系统的访问地址和登录方式
 
 ## 📝 开发日志
 
@@ -181,9 +211,9 @@ A: 可能原因：
 
 ## 📞 联系我们
 
-- 📧 Email: your-email@example.com
-- 🐛 Issues: [GitHub Issues](https://github.com/your-username/ZFJW-backend/issues)
-- 💬 讨论: [GitHub Discussions](https://github.com/your-username/ZFJW-backend/discussions)
+- 📧 Email: 27123587802@qq.com
+- 🐛 Issues: [GitHub Issues](https://github.com/drfccv/ZFJW-backend/issues)
+- 💬 讨论: [GitHub Discussions](https://github.com/drfccv/ZFJW-backend/discussions)
 
 ---
 
