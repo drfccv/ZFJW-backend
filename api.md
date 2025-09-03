@@ -6,7 +6,7 @@
 
 - **服务地址**: `http://localhost:5000` (开发环境)
 - **生产地址**: 根据部署环境配置
-- **支持学校**: 九江学院、南昌职业大学（持续扩展中）
+- **支持学校**: 九江学院、南昌职业大学、南京工业大学、西安邮电大学、浙江农林大学暨阳学院、广东工程职业技术学院（共6所，持续扩展中）
 - **数据格式**: JSON (Content-Type: application/json)
 - **响应格式**: 统一JSON结构
 - **认证方式**: Session-based Cookie认证
@@ -63,7 +63,7 @@
   "code": 1000,
   "msg": "获取学校列表成功",
   "data": {
-    "count": 2,
+    "count": 6,
     "schools": [
       {
         "school_name": "九江学院",
@@ -76,6 +76,30 @@
         "school_code": "nvu",
         "description": "南昌职业大学教务系统",
         "requires_captcha": false
+      },
+      {
+        "school_name": "南京工业大学",
+        "school_code": "njtech",
+        "description": "南京工业大学教务系统",
+        "requires_captcha": false
+      },
+      {
+        "school_name": "西安邮电大学",
+        "school_code": "xupt",
+        "description": "西安邮电大学教务系统",
+        "requires_captcha": true
+      },
+      {
+        "school_name": "浙江农林大学暨阳学院",
+        "school_code": "zafu",
+        "description": "浙江农林大学暨阳学院教务系统",
+        "requires_captcha": true
+      },
+      {
+        "school_name": "广东工程职业技术学院",
+        "school_code": "gpc",
+        "description": "广东工程职业技术学院教务系统",
+        "requires_captcha": true
       }
     ]
   }
@@ -91,6 +115,10 @@
 **支持的学校名称**:
 - `九江学院`
 - `南昌职业大学`
+- `南京工业大学`
+- `西安邮电大学`
+- `浙江农林大学暨阳学院`
+- `广东工程职业技术学院`
 
 **响应示例**:
 ```json
@@ -146,7 +174,7 @@
 **参数说明**:
 - `sid`: 学生学号（必填）
 - `password`: 登录密码（必填）
-- `school_name`: 学校名称（必填，支持"九江学院"、"南昌职业大学"）
+- `school_name`: 学校名称（必填，支持"九江学院"、"南昌职业大学"、"南京工业大学"、"西安邮电大学"、"浙江农林大学暨阳学院"、"广东工程职业技术学院"）
 - `base_url`: 学校教务系统地址（可选，与school_name二选一）
 
 **响应示例**:

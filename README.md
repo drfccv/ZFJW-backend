@@ -6,13 +6,13 @@
 ![Build Status](https://img.shields.io/badge/Build-Passing-brightgreen.svg)
 ![Docker](https://img.shields.io/badge/Docker-Supported-blue.svg)
 
-一个基于 `zfn_api` 的正方教务系统后端服务，使用 Flask 封装为 RESTful API，支持多所高校教务数据查询，专为微信小程序和Web应用提供统一的数据接口。
+一个基于 `zfn_api` 的正方教务系统后端服务，使用 Flask 封装为 RESTful API，支持 **6所高校** 教务数据查询，专为微信小程序和Web应用提供统一的数据接口。
 
 ## ✨ 特性
 
 - 🔐 **安全认证**: 支持教务系统登录验证
 - 📊 **数据查询**: 提供个人信息、成绩、考试等多维度数据
-- 🏫 **多校支持**: 通过配置文件支持多所学校
+- 🏫 **多校支持**: 通过配置文件支持6所高校，持续扩展中
 - 🚀 **轻量级**: 基于 Flask 框架，部署简单
 - 📱 **小程序适配**: 专为微信小程序优化的 API 设计
 
@@ -118,20 +118,24 @@ ZFJW-backend/
     "base_url": "https://zhjw1.jju.edu.cn",
     "school_code": "jju",
     "description": "九江学院教务系统",
-    "requires_captcha": true,
-    "encoding": "utf-8",
-    "timeout": 30
+    "requires_captcha": true
   },
   "南昌职业大学": {
-    "base_url": "http://jwgl.nvu.edu.cn",
+    "base_url": "https://jwxt.nvu.edu.cn",
     "school_code": "nvu", 
     "description": "南昌职业大学教务系统",
-    "requires_captcha": false,
-    "encoding": "gbk",
-    "timeout": 30
+    "requires_captcha": false
+  },
+  "南京工业大学": {
+    "base_url": "https://jwgl.njtech.edu.cn",
+    "school_code": "njtech",
+    "description": "南京工业大学教务系统",
+    "requires_captcha": false
   }
 }
 ```
+
+> 📝 **说明**: 配置文件包含学校基本信息、URL路径、参数映射等详细配置，支持灵活的多校适配。
 
 ### 支持的学校列表
 
@@ -139,8 +143,12 @@ ZFJW-backend/
 |---------|---------|-----------|------|
 | 九江学院 | jju | ✅ | ✅ 已支持 |
 | 南昌职业大学 | nvu | ❌ | ✅ 已支持 |
+| 南京工业大学 | njtech | ❌ | ✅ 已支持 |
+| 西安邮电大学 | xupt | ✅ | ✅ 已支持 |
+| 浙江农林大学暨阳学院 | zafu | ✅ | ✅ 已支持 |
+| 广东工程职业技术学院 | gpc | ✅ | ✅ 已支持 |
 
-> 💡 **提示**: 如需添加新学校支持，请参考贡献指南提交配置。
+> 💡 **提示**: 如需添加新学校支持，请参考贡献指南提交配置。目前已支持 **6所** 高校教务系统。
 
 ## 🤝 贡献指南
 
