@@ -56,7 +56,7 @@ def get_base_url_from_params(data):
     if not base_url and not school_name:
         return None, jsonify({"code": 400, "msg": "缺少 base_url 或 school_name 参数"})
     
-    # 如果没有 base_url，尝试通过 school_name 查找
+    # 通过学校名称获取base_url
     if not base_url and school_name:
         school_config = school_config_manager.get_school_config(school_name)
         if school_config:
@@ -87,7 +87,7 @@ def login():
     if not sid or not password or (not base_url and not school_name):
         return jsonify({"code": 400, "msg": "参数不完整，需要 sid, password 和 (base_url 或 school_name)"})
 
-    # 如果没有 base_url，尝试通过 school_name 查找
+    # 通过学校名称获取base_url
     if not base_url and school_name:
         school_config = school_config_manager.get_school_config(school_name)
         if school_config:
@@ -104,7 +104,7 @@ def login():
     requires_captcha = school_config_manager.requires_captcha(school_name)
     if requires_captcha:
         print(f"学校 '{school_name}' 需要验证码，直接返回验证码获取提示")
-        # 直接尝试获取验证码，不进行无验证码登录尝试
+        # 获取验证码进行登录验证
         try:
             stu = Client(cookies={}, base_url=base_url, school_name=school_name, raspisanie=RASPISANIE, ignore_type=IGNORE_TYPE, detail_category_type=DETAIL_CATEGORY_TYPE, timeout=TIMEOUT)
             lgn = stu.login(sid, password)
@@ -120,7 +120,7 @@ def login():
     try:
         stu = Client(cookies={}, base_url=base_url, school_name=school_name, raspisanie=RASPISANIE, ignore_type=IGNORE_TYPE, detail_category_type=DETAIL_CATEGORY_TYPE, timeout=TIMEOUT)
         
-        # 尝试登录
+        # 执行登录操作
         lgn = stu.login(sid, password)
         print(f"登录结果: {lgn}")
         
@@ -212,8 +212,8 @@ def get_grade():
     if error_response:
         return error_response
     
-    if not all([cookies, year, term]):
-        return jsonify({"code": 400, "msg": "参数不完整，需要 cookies, year, term 和 (base_url 或 school_name)"})
+    if not cookies:
+        return jsonify({"code": 400, "msg": "参数不完整，需要 cookies 和 (base_url 或 school_name)"})
     
     print(f"成绩查询 - 使用URL: {base_url}")
     
@@ -305,7 +305,7 @@ def get_schedule():
     # 获取school_name参数用于URL配置
     school_name = data.get('school_name')
     
-    # 使用修复版本的课表查询
+    # 调用课表查询接口
     try:
         sess = requests.Session()
         sess.verify = False
@@ -405,7 +405,7 @@ def get_schedule():
         if "用户登录" in schedule_response.text:
             return jsonify({"code": 1006, "msg": "课表查询时被重定向到登录页面，cookies可能已过期"})
         
-        # 尝试解析JSON
+        # 解析JSON响应
         try:
             schedule_data = schedule_response.json()
             
@@ -445,8 +445,8 @@ def get_schedule():
             return jsonify({"code": 2333, "msg": f"课表响应格式错误，内容: {schedule_response.text[:200]}"})
     
     except Exception as e:
-        print(f"课表查询修复版本出错: {str(e)}")
-        traceback.print_exc()        # 如果修复版本失败，回退到原版本
+        print(f"课表查询服务异常: {str(e)}")
+        traceback.print_exc()        # 当前查询方法失败时的异常处理
         try:
             stu = Client(cookies=cookies, base_url=base_url, raspisanie=RASPISANIE, ignore_type=IGNORE_TYPE, detail_category_type=DETAIL_CATEGORY_TYPE, timeout=TIMEOUT)
             
@@ -536,18 +536,48 @@ def get_captcha():
         return jsonify({"code": 400, "msg": "未能获取到 base_url，请检查 school_name 是否正确或补充 base_url 参数"})
     
     try:
-        stu = Client(cookies={}, base_url=base_url, raspisanie=RASPISANIE, ignore_type=IGNORE_TYPE, detail_category_type=DETAIL_CATEGORY_TYPE, timeout=TIMEOUT)
+        stu = Client(cookies={}, base_url=base_url, school_name=school_name, raspisanie=RASPISANIE, ignore_type=IGNORE_TYPE, detail_category_type=DETAIL_CATEGORY_TYPE, timeout=TIMEOUT)
         
-        # 访问登录页面获取验证码URL
-        login_url = f"{base_url}/xtgl/login_slogin.html"
-        resp = stu.sess.get(login_url, timeout=stu.timeout, verify=False)
+        # 使用Client配置的正确URL路径
+        if not stu.login_url or not stu.kaptcha_url:
+            return jsonify({"code": 2333, "msg": "学校配置不完整，无法获取登录或验证码URL"})
+        
+        # 访问登录页面
+        resp = stu.sess.get(stu.login_url, timeout=stu.timeout, verify=False)
         
         if resp.status_code != 200:
             return jsonify({"code": 2333, "msg": f"无法访问登录页面，状态码: {resp.status_code}"})
         
-        # 直接获取验证码
-        kaptcha_url = f"{base_url}/kaptcha"
-        req_kaptcha = stu.sess.get(kaptcha_url, timeout=stu.timeout, verify=False)
+        # 解析页面获取CSRF token
+        from pyquery import PyQuery as pq
+        doc = pq(resp.text)
+        csrf_token = doc("#csrftoken").attr("value")
+        
+        if not csrf_token:
+            return jsonify({"code": 2333, "msg": "无法获取CSRF token"})
+        
+        # 获取公钥
+        if not stu.key_url:
+            return jsonify({"code": 2333, "msg": "学校配置不完整，无法获取公钥URL"})
+            
+        req_pubkey = stu.sess.get(stu.key_url, timeout=stu.timeout, verify=False)
+        
+        if req_pubkey.status_code != 200:
+            return jsonify({"code": 2333, "msg": f"公钥获取失败，状态码: {req_pubkey.status_code}"})
+        
+        try:
+            pubkey_data = req_pubkey.json()
+        except Exception as e:
+            return jsonify({"code": 2333, "msg": f"公钥解析失败: {str(e)}"})
+        
+        modulus = pubkey_data.get("modulus")
+        exponent = pubkey_data.get("exponent")
+        
+        if not modulus or not exponent:
+            return jsonify({"code": 2333, "msg": "公钥数据不完整"})
+        
+        # 获取验证码
+        req_kaptcha = stu.sess.get(stu.kaptcha_url, timeout=stu.timeout, verify=False)
         
         if req_kaptcha.status_code != 200:
             return jsonify({"code": 2333, "msg": f"验证码获取失败，状态码: {req_kaptcha.status_code}"})
@@ -559,7 +589,10 @@ def get_captcha():
             "msg": "获取验证码成功",
             "data": {
                 "kaptcha": kaptcha_pic,
-                "cookies": dict(stu.sess.cookies)
+                "cookies": dict(stu.sess.cookies),
+                "csrf_token": csrf_token,
+                "modulus": modulus,
+                "exponent": exponent
             }
         }
         
@@ -605,7 +638,7 @@ def block_courses():
     """获取板块课程列表"""
     data = request.json
     cookies = data.get('cookies')
-    year = data.get('year', 2025)  # 更新默认年份为2025
+    year = data.get('year', 2025)  # 默认查询年份为2025
     term = data.get('term', 1)
     # 支持两种参数名：block 和 block_id
     block = data.get('block') or data.get('block_id', 1)
@@ -809,6 +842,142 @@ def check_captcha_required(school_name):
             "code": 999,
             "msg": f"检查验证码需求失败: {str(e)}"
         })
+
+# 教学评价相关接口
+@app.route('/api/evaluate_menu', methods=['POST'])
+@handle_errors
+def evaluate_menu():
+    data = request.json
+    cookies = data.get('cookies')
+    school_name = data.get('school_name')
+    base_url, error_response = get_base_url_from_params(data)
+    if error_response:
+        return error_response
+    if not cookies:
+        return jsonify({"code": 400, "msg": "参数不完整，需要 cookies 和 (base_url 或 school_name)"})
+    stu = Client(cookies=cookies, base_url=base_url, school_name=school_name, raspisanie=RASPISANIE, ignore_type=IGNORE_TYPE, detail_category_type=DETAIL_CATEGORY_TYPE, timeout=TIMEOUT)
+    result = stu.get_evaluate_menu(school_name=school_name, base_url=base_url)
+    return jsonify(result)
+
+@app.route('/api/evaluate_detail', methods=['POST'])
+@handle_errors
+def evaluate_detail():
+    data = request.json
+    cookies = data.get('cookies')
+    jxb_id = data.get('jxb_id')
+    school_name = data.get('school_name')
+    base_url, error_response = get_base_url_from_params(data)
+    if error_response:
+        return error_response
+    if not cookies or not jxb_id:
+        return jsonify({"code": 400, "msg": "参数不完整，需要 cookies, jxb_id 和 (base_url 或 school_name)"})
+    stu = Client(cookies=cookies, base_url=base_url, school_name=school_name, raspisanie=RASPISANIE, ignore_type=IGNORE_TYPE, detail_category_type=DETAIL_CATEGORY_TYPE, timeout=TIMEOUT)
+    result = stu.get_evaluate_detail(jxb_id, school_name=school_name, base_url=base_url)
+    return jsonify(result)
+
+@app.route('/api/evaluate_save', methods=['POST'])
+@handle_errors
+def evaluate_save():
+    data = request.json
+    cookies = data.get('cookies')
+    school_name = data.get('school_name')
+    jxb_id = data.get('jxb_id')
+    kch_id = data.get('kch_id')
+    evaluation_data = data.get('evaluation_data')
+    comment = data.get('comment', '')
+    comment_name = data.get('comment_name', 'py')
+
+    # 校验参数（action_url 不再要求前端传）
+    if not (cookies and school_name and jxb_id and kch_id and evaluation_data):
+        return jsonify({"code": 400, "msg": "参数不完整，需要 cookies, school_name, jxb_id, kch_id, evaluation_data"})
+
+    # 后端自动查找 action_url（保存接口用 evaluate_save 配置）
+    school_config = school_config_manager.get_school_config(school_name)
+    if not school_config:
+        return jsonify({"code": 400, "msg": f"未找到学校 '{school_name}' 的配置"})
+    base_url = school_config.get('base_url')
+    evaluate_save_path = school_config.get('urls', {}).get('evaluate_save')
+    if not (base_url and evaluate_save_path):
+        return jsonify({"code": 400, "msg": "学校配置缺少 base_url 或 evaluate_save 路径"})
+    action_url = urljoin(base_url, evaluate_save_path)
+
+    # 自动组装表单参数
+    stu = Client(cookies=cookies, base_url=base_url, school_name=school_name, raspisanie=RASPISANIE, ignore_type=IGNORE_TYPE, detail_category_type=DETAIL_CATEGORY_TYPE, timeout=TIMEOUT)
+
+    # 兼容前端只传分数、评语，后端自动补全所有必填参数
+    # 先获取评价详情，拿到所有input_name、pjzbxm_id等
+    detail_result = stu.get_evaluate_detail(jxb_id, school_name=school_name, base_url=base_url)
+    if detail_result.get('code') != 1000:
+        return jsonify(detail_result)
+    detail_data = detail_result['data']
+    # 组装items，保证input_name和分数一一对应
+    items = []
+    frontend_items = {item['input_name']: item['score'] for item in evaluation_data.get('items', []) if 'input_name' in item}
+    for item in detail_data['evaluation_items']:
+        if item.get('has_input'):
+            input_name = item.get('input_name')
+            score = frontend_items.get(input_name)
+            if score is not None:
+                items.append({"input_name": input_name, "score": score})
+    final_evaluation_data = {"items": items}
+    final_comment = comment
+    # 执行保存操作
+    result = stu.save_evaluate(action_url, jxb_id, kch_id, final_evaluation_data, final_comment)
+    return jsonify(result)
+
+@app.route('/api/evaluate_submit', methods=['POST'])
+@handle_errors
+def evaluate_submit():
+    data = request.json
+    print(f"收到教学评价提交请求: {data}")
+    cookies = data.get('cookies')
+    school_name = data.get('school_name')
+    jxb_id = data.get('jxb_id')
+    kch_id = data.get('kch_id')
+    evaluation_data = data.get('evaluation_data')
+    comment = data.get('comment', '')
+    comment_name = data.get('comment_name', 'py')
+
+    # 校验参数（action_url 不再要求前端传）
+    if not (cookies and school_name and jxb_id and kch_id and evaluation_data):
+        return jsonify({"code": 400, "msg": "参数不完整，需要 cookies, school_name, jxb_id, kch_id, evaluation_data"})
+
+    # 后端自动查找 action_url
+    school_config = school_config_manager.get_school_config(school_name)
+    if not school_config:
+        return jsonify({"code": 400, "msg": f"未找到学校 '{school_name}' 的配置"})
+    base_url = school_config.get('base_url')
+    evaluate_submit_path = school_config.get('urls', {}).get('evaluate_submit')
+    if not (base_url and evaluate_submit_path):
+        return jsonify({"code": 400, "msg": "学校配置缺少 base_url 或 evaluate_submit 路径"})
+    action_url = urljoin(base_url, evaluate_submit_path)
+
+    # 自动组装表单参数
+    stu = Client(cookies=cookies, base_url=base_url, school_name=school_name, raspisanie=RASPISANIE, ignore_type=IGNORE_TYPE, detail_category_type=DETAIL_CATEGORY_TYPE, timeout=TIMEOUT)
+
+    # 兼容前端只传分数、评语，后端自动补全所有必填参数
+    # 先获取评价详情，拿到所有input_name、pjzbxm_id等
+    detail_result = stu.get_evaluate_detail(jxb_id, school_name=school_name, base_url=base_url)
+    if detail_result.get('code') != 1000:
+        return jsonify(detail_result)
+    detail_data = detail_result['data']
+    # 组装items，保证input_name和分数一一对应
+    items = []
+    # 前端传的分数结构：{"items": [{"input_name":..., "score":...}, ...]}
+    frontend_items = {item['input_name']: item['score'] for item in evaluation_data.get('items', []) if 'input_name' in item}
+    for item in detail_data['evaluation_items']:
+        if item.get('has_input'):
+            input_name = item.get('input_name')
+            score = frontend_items.get(input_name)
+            if score is not None:
+                items.append({"input_name": input_name, "score": score})
+    # 组装最终evaluation_data
+    final_evaluation_data = {"items": items}
+    # 评语字段名兼容
+    final_comment = comment
+    # 执行提交操作
+    result = stu.submit_evaluate(action_url, jxb_id, kch_id, final_evaluation_data, final_comment)
+    return jsonify(result)
 
 if __name__ == '__main__':
     # 检查是否在生产环境

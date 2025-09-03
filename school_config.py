@@ -67,14 +67,14 @@ class SchoolConfigManager:
             return False
     
     def update_school(self, school_name: str, config: Dict) -> bool:
-        """更新学校配置"""
+        """设置学校配置"""
         try:
             if school_name in self.schools_config:
                 self.schools_config[school_name].update(config)
                 return self.save_config()
             return False
         except Exception as e:
-            print(f"更新学校配置失败: {e}")
+            print(f"设置学校配置失败: {e}")
             return False
     
     def delete_school(self, school_name: str) -> bool:

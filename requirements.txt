@@ -6,3 +6,4 @@ uWSGI>=2.0.21
 lxml
 pillow
 pyquery
+beautifulsoup4
