@@ -1,7 +1,6 @@
 Flask
 flask-cors
 requests
-uWSGI>=2.0.21
 # 以下为 zfn_api 依赖
 lxml
 pillow
