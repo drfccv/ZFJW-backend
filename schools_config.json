@@ -214,6 +214,111 @@
       }
     }
   },
+  "福建江夏学院": {
+    "base_url": "https://jwxt.fjjxu.edu.cn",
+    "school_name": "福建江夏学院",
+    "school_code": "fjjxu",
+    "requires_captcha": false,
+    "description": "福建江夏学院教务系统",
+    "urls": {
+      "login": "jwglxt/xtgl/login_slogin.html",
+      "key": "jwglxt/xtgl/login_getPublicKey.html",
+      "kaptcha": "jwglxt/kaptcha",
+      "info": "jwglxt/xsxxxggl/xsxxwh_cxCkDgxsxx.html?gnmkdm=N100801",
+      "grade": "jwglxt/cjcx/cjcx_cxXsgrcj.html?doType=query&gnmkdm=N305005",
+      "grade_detail": "jwglxt/cjcx/cjcx_cxXsKccjList.html?gnmkdm=N305007&layout=default",
+      "exam": "jwglxt/kwgl/kscx_cxXsksxxIndex.html?doType=query&gnmkdm=N358105",
+      "schedule": "jwglxt/kbcx/xskbcx_cxXsgrkb.html?gnmkdm=N2151",
+      "schedule_index": "jwglxt/kbcx/xskbcx_cxXskbcxIndex.html?gnmkdm=N2151&layout=default",
+      "academia": "jwglxt/xsxy/xsxyqk_cxXsxyqkIndex.html?gnmkdm=N105515&layout=default",
+      "academia_info": "jwglxt/xsxy/xsxyqk_cxJxzxjhxfyqKcxx.html?gnmkdm=N105515",
+      "notifications": "jwglxt/xtgl/index_cxDbsy.html?doType=query",
+      "selected_courses": "jwglxt/xsxk/zzxkyzb_cxZzxkYzbChoosedDisplay.html?gnmkdm=N253512",
+      "block_courses_index": "jwglxt/xsxk/zzxkyzb_cxZzxkYzbIndex.html?gnmkdm=N253512&layout=default",
+      "block_courses": "jwglxt/xsxk/zzxkyzb_cxZzxkYzbPartDisplay.html?gnmkdm=N253512",
+      "course_classes": "jwglxt/xsxk/zzxkyzbjk_cxJxbWithKchZzxkYzb.html?gnmkdm=N253512",
+      "select_course": "jwglxt/xsxk/zzxkyzb_xkBcZyZzxkYzb.html?gnmkdm=N253512",
+      "drop_course": "jwglxt/xsxk/zzxkyzb_tuikBcZzxkYzb.html?gnmkdm=N253512",
+      "evaluate": "xspjgl/xspj_cxXspjIndex.html?doType=query&gnmkdm=N401605",
+      "evaluate_detail": "xspjgl/xspj_cxXspjDisplay.html?gnmkdm=N401605",
+      "evaluate_submit": "xspjgl/xspj_tjXspj.html?gnmkdm=N401605",
+      "evaluate_save": "xspjgl/xspj_bcXspj.html?gnmkdm=N401605",
+      "schedule_pdf": "jwglxt/kbdy/bjkbdy_cxXnxqsfkz.html?gnmkdm=N2151",
+      "academia_pdf": "jwglxt/bysxxcx/xscjzbdy_dyXscjzbView.html",
+      "classroom_index": "jwglxt/cdjy/cdjy_cxKxcdlb.html?gnmkdm=N2155&layout=default",
+      "classroom": "jwglxt/cdjy/cdjy_cxKxcdlb.html?doType=query&gnmkdm=N2155",
+      "building_list": "jwglxt/cdjy/cdjy_cxXqjc.html"
+    },
+    "parameters": {
+      "grade_year_offset": -1,
+      "term_mapping": {
+        "1": "",
+        "2": "12"
+      },
+      "term_formula": "term ** 2 * 3",
+      "default_params": {
+        "jg_id": "14",
+        "zyh_id": "1401",
+        "zyfx_id": "wfx",
+        "bh_id": "124140102",
+        "xqh_id": "1",
+        "xkxskcgskg": "1",
+        "kklxdm": "10",
+        "xkkz_id": "376AC1914F6D7A4EE0630AECC1DAD910"
+      }
+    }
+  },
+  "福建江夏学院": {
+    "base_url": "https://jwxt.fjjxu.edu.cn",
+    "school_name": "福建江夏学院",
+    "school_code": "fjjxu",
+    "requires_captcha": false,
+    "description": "福建江夏学院教务系统",
+    "urls": {
+      "login": "jwglxt/xtgl/login_slogin.html",
+      "key": "jwglxt/xtgl/login_getPublicKey.html",
+      "kaptcha": "jwglxt/kaptcha",
+      "info": "jwglxt/xsxxxggl/xsxxwh_cxCkDgxsxx.html?gnmkdm=N100801",
+      "grade": "jwglxt/cjcx/cjcx_cxXsgrcj.html?doType=query&gnmkdm=N305005",
+      "grade_detail": "jwglxt/cjcx/cjcx_cxXsKccjList.html?gnmkdm=N305007&layout=default",
+      "exam": "jwglxt/kwgl/kscx_cxXsksxxIndex.html?doType=query&gnmkdm=N358105",
+      "schedule": "jwglxt/kbcx/xskbcx_cxXsgrkb.html?gnmkdm=N2151",
+      "schedule_index": "jwglxt/kbcx/xskbcx_cxXskbcxIndex.html?gnmkdm=N2151&layout=default",
+      "academia": "jwglxt/xsxy/xsxyqk_cxXsxyqkIndex.html?gnmkdm=N105515&layout=default",
+      "academia_info": "jwglxt/xsxy/xsxyqk_cxJxzxjhxfyqKcxx.html?gnmkdm=N105515",
+      "notifications": "jwglxt/xtgl/index_cxDbsy.html?doType=query",
+      "selected_courses": "jwglxt/xsxk/zzxkyzb_cxZzxkYzbChoosedDisplay.html?gnmkdm=N253512",
+      "block_courses_index": "jwglxt/xsxk/zzxkyzb_cxZzxkYzbIndex.html?gnmkdm=N253512&layout=default",
+      "block_courses": "jwglxt/xsxk/zzxkyzb_cxZzxkYzbPartDisplay.html?gnmkdm=N253512",
+      "course_classes": "jwglxt/xsxk/zzxkyzbjk_cxJxbWithKchZzxkYzb.html?gnmkdm=N253512",
+      "select_course": "jwglxt/xsxk/zzxkyzb_xkBcZyZzxkYzb.html?gnmkdm=N253512",
+      "drop_course": "jwglxt/xsxk/zzxkyzb_tuikBcZzxkYzb.html?gnmkdm=N253512",
+      "evaluate": "xspjgl/xspj_cxXspjIndex.html?doType=query&gnmkdm=N401605",
+      "evaluate_detail": "xspjgl/xspj_cxXspjDisplay.html?gnmkdm=N401605",
+      "evaluate_submit": "xspjgl/xspj_tjXspj.html?gnmkdm=N401605",
+      "evaluate_save": "xspjgl/xspj_bcXspj.html?gnmkdm=N401605",
+      "schedule_pdf": "jwglxt/kbdy/bjkbdy_cxXnxqsfkz.html?gnmkdm=N2151",
+      "academia_pdf": "jwglxt/bysxxcx/xscjzbdy_dyXscjzbView.html"
+    },
+    "parameters": {
+      "grade_year_offset": -1,
+      "term_mapping": {
+        "1": "",
+        "2": "12"
+      },
+      "term_formula": "term ** 2 * 3",
+      "default_params": {
+        "jg_id": "14",
+        "zyh_id": "1401",
+        "zyfx_id": "wfx",
+        "bh_id": "124140102",
+        "xqh_id": "1",
+        "xkxskcgskg": "1",
+        "kklxdm": "10",
+        "xkkz_id": "376AC1914F6D7A4EE0630AECC1DAD910"
+      }
+    }
+  },
   "浙江农林大学暨阳学院": {
     "base_url": "https://jwxt.zjyc.edu.cn",
     "school_name": "浙江农林大学暨阳学院",
