@@ -2708,7 +2708,7 @@ class Client:
         data = {
             "_search": "false",
             "nd": int(time.time() * 1000),
-            "queryModel.showCount": "15",
+            "queryModel.showCount": "5000",
             "queryModel.currentPage": "1",
             "queryModel.sortName": "kcmc,jzgmc ",
             "queryModel.sortOrder": "asc",
