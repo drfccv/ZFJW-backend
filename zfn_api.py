@@ -2742,7 +2742,7 @@ class Client:
                 "jxb_id": item.get("jxb_id"),  # 教学班ID，用于后续评价
                 "jgh_id": item.get("jgh_id"),  # 教职工ID，用于评价详情
                 "xsdm": item.get("xsdm"),  # 学生代码
-                "evaluate_url": f"{self.base_url.rstrip('/')}/jwglxt/xspjgl/xspj_cxXspjIndex.html?doType=details&gnmkdm=N401605&layout=default&jxb_id={item.get('jxb_id')}"
+                "evaluate_url": f"{self.base_url.rstrip('/') if self.base_url else ''}/jwglxt/xspjgl/xspj_cxXspjIndex.html?doType=details&gnmkdm=N401605&layout=default&jxb_id={item.get('jxb_id')}"
             })
         
         return {
@@ -2845,7 +2845,7 @@ class Client:
         # 获取表单action
         form = soup.find('form', {'id': 'ajaxForm1'})
         action = form.get('action') if form else ''
-        if action and not action.startswith('http'):
+        if action and not action.startswith('http') and self.base_url:
             action = urljoin(self.base_url, action)
         # 获取课程信息
         course_name = course_info["course_name"]
@@ -2973,8 +2973,9 @@ class Client:
         data['modelList[0].xspjList[0].pjzbxm_id'] = evaluation_items[0]['pjzbxm_id'] if evaluation_items else ''
         data['modelList[0].pjzt'] = '1'
         # 构造完整headers
-        referer_url = f"{self.base_url.rstrip('/')}/jwglxt/xspjgl/xspj_cxXspjIndex.html?doType=details&gnmkdm=N401605&layout=default&jxb_id={jxb_id}"
-        origin_url = self.base_url.rstrip('/')
+        base_url_str = self.base_url if self.base_url else ''
+        referer_url = f"{base_url_str.rstrip('/')}/jwglxt/xspjgl/xspj_cxXspjIndex.html?doType=details&gnmkdm=N401605&layout=default&jxb_id={jxb_id}"
+        origin_url = base_url_str.rstrip('/')
         headers = self.headers.copy()
         headers.update({
             'Accept': 'application/json, text/javascript, */*; q=0.01',
@@ -3060,8 +3061,9 @@ class Client:
         data['modelList[0].xspjList[0].pjzbxm_id'] = evaluation_items[0]['pjzbxm_id'] if evaluation_items else ''
         data['modelList[0].pjzt'] = '1'
         # 构造完整headers
-        referer_url = f"{self.base_url.rstrip('/')}/jwglxt/xspjgl/xspj_cxXspjIndex.html?doType=details&gnmkdm=N401605&layout=default&jxb_id={jxb_id}"
-        origin_url = self.base_url.rstrip('/')
+        base_url_str = self.base_url if self.base_url else ''
+        referer_url = f"{base_url_str.rstrip('/')}/jwglxt/xspjgl/xspj_cxXspjIndex.html?doType=details&gnmkdm=N401605&layout=default&jxb_id={jxb_id}"
+        origin_url = base_url_str.rstrip('/')
         headers = self.headers.copy()
         headers.update({
             'Accept': 'application/json, text/javascript, */*; q=0.01',
@@ -3143,7 +3145,9 @@ class Client:
             
             for option in campus_select.items():
                 campus_id = option.attr("value")
-                campus_name = option.text().strip()
+                campus_name_text = option.text()
+                # PyQuery的text()返回str，但类型检查可能不正确，显式处理
+                campus_name = str(campus_name_text).strip() if campus_name_text else ""
                 if campus_id and campus_name:
                     campus_list.append({
                         "campus_id": campus_id,

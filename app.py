@@ -6,7 +6,7 @@ import traceback
 import requests
 import json
 import urllib3
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urljoin
 
 # 导入核心 API
 from zfn_api import Client
@@ -76,6 +76,8 @@ def get_base_url_from_params(data):
 @handle_errors
 def login():
     data = request.json
+    if not data:
+        return jsonify({"code": 400, "msg": "请求数据为空"})
     print(f"收到登录请求: {data}")
     
     sid = data.get('sid')
@@ -139,6 +141,8 @@ def login():
 @handle_errors
 def login_with_kaptcha():
     data = request.json
+    if not data:
+        return jsonify({"code": 400, "msg": "请求数据为空"})
     print(f"收到验证码登录请求: {data}")
     
     base_url = data.get('base_url')
@@ -180,6 +184,8 @@ def login_with_kaptcha():
 @handle_errors
 def get_info():
     data = request.json
+    if not data:
+        return jsonify({"code": 400, "msg": "请求数据为空"})
     cookies = data.get('cookies')
     
     # 使用统一的参数校验获取base_url
@@ -204,6 +210,8 @@ def get_info():
 @handle_errors
 def get_grade():
     data = request.json
+    if not data:
+        return jsonify({"code": 400, "msg": "请求数据为空"})
     cookies = data.get('cookies')
     year = data.get('year')
     term = data.get('term')
@@ -229,6 +237,8 @@ def get_grade():
 @handle_errors
 def get_exam():
     data = request.json
+    if not data:
+        return jsonify({"code": 400, "msg": "请求数据为空"})
     cookies = data.get('cookies')
     year = data.get('year')
     term = data.get('term')
@@ -263,6 +273,8 @@ def get_grade_detail():
         base_url: 学校教务系统地址（可选，如果提供school_name则自动获取）
     """
     data = request.json
+    if not data:
+        return jsonify({"code": 400, "msg": "请求数据为空"})
     cookies = data.get('cookies')
     year = data.get('year')
     term = data.get('term', 0)  # 默认为整个学年
@@ -289,6 +301,8 @@ def get_grade_detail():
 @handle_errors
 def get_schedule():
     data = request.json
+    if not data:
+        return jsonify({"code": 400, "msg": "请求数据为空"})
     cookies = data.get('cookies')
     year = data.get('year')
     term = data.get('term')
@@ -464,6 +478,8 @@ def get_schedule():
 @handle_errors
 def get_notifications():
     data = request.json
+    if not data:
+        return jsonify({"code": 400, "msg": "请求数据为空"})
     cookies = data.get('cookies')
     
     # 使用统一的参数校验获取base_url
@@ -492,6 +508,8 @@ def get_notifications():
 @handle_errors
 def get_academia():
     data = request.json
+    if not data:
+        return jsonify({"code": 400, "msg": "请求数据为空"})
     cookies = data.get('cookies')
     
     # 使用统一的参数校验获取base_url
@@ -504,20 +522,25 @@ def get_academia():
     
     print(f"学业生涯查询 - 使用URL: {base_url}")
     
-    try:
-        stu = Client(cookies=cookies, base_url=base_url, raspisanie=RASPISANIE, ignore_type=IGNORE_TYPE, detail_category_type=DETAIL_CATEGORY_TYPE, timeout=TIMEOUT)
-        result = stu.get_academia()
-        return jsonify(result)
-    except Exception as e:
-        print(f"学业生涯查询出错: {str(e)}")
-        traceback.print_exc()
-        return jsonify({"code": 999, "msg": f"学业生涯查询失败: {str(e)}"})
+    # 注意：get_academia 方法已被注释掉，返回不支持
+    return jsonify({"code": 400, "msg": "get_academia 方法当前不可用。该功能在开发中。"})
+    
+    # try:
+    #     stu = Client(cookies=cookies, base_url=base_url, raspisanie=RASPISANIE, ignore_type=IGNORE_TYPE, detail_category_type=DETAIL_CATEGORY_TYPE, timeout=TIMEOUT)
+    #     result = stu.get_academia()
+    #     return jsonify(result)
+    # except Exception as e:
+    #     print(f"学业生涯查询出错: {str(e)}")
+    #     traceback.print_exc()
+    #     return jsonify({"code": 999, "msg": f"学业生涯查询失败: {str(e)}"})
 
 # 获取验证码接口
 @app.route('/api/get_captcha', methods=['POST'])
 @handle_errors
 def get_captcha():
     data = request.json
+    if not data:
+        return jsonify({"code": 400, "msg": "请求数据为空"})
     print(f"收到获取验证码请求: {data}")
     
     base_url = data.get('base_url')
@@ -613,6 +636,8 @@ def get_captcha():
 def selected_courses():
     """获取已选课程列表"""
     data = request.json
+    if not data:
+        return jsonify({"code": 400, "msg": "请求数据为空"})
     cookies = data.get('cookies')
     year = data.get('year', 2024)
     term = data.get('term', 1)
@@ -637,6 +662,8 @@ def selected_courses():
 def block_courses():
     """获取板块课程列表"""
     data = request.json
+    if not data:
+        return jsonify({"code": 400, "msg": "请求数据为空"})
     cookies = data.get('cookies')
     year = data.get('year', 2025)  # 默认查询年份为2025
     term = data.get('term', 1)
@@ -663,6 +690,8 @@ def block_courses():
 def course_classes():
     """获取指定课程的教学班列表"""
     data = request.json
+    if not data:
+        return jsonify({"code": 400, "msg": "请求数据为空"})
     cookies = data.get('cookies')
     year = data.get('year', 2025)
     term = data.get('term', 1)
@@ -688,6 +717,8 @@ def course_classes():
 def select_course():
     """选课接口"""
     data = request.json
+    if not data:
+        return jsonify({"code": 400, "msg": "请求数据为空"})
     cookies = data.get('cookies')
     sid = data.get('sid')
     course_id = data.get('course_id')
@@ -716,6 +747,8 @@ def select_course():
 def drop_course():
     """退课接口"""
     data = request.json
+    if not data:
+        return jsonify({"code": 400, "msg": "请求数据为空"})
     cookies = data.get('cookies')
     do_id = data.get('do_id')
     course_id = data.get('course_id')
@@ -742,6 +775,8 @@ def drop_course():
 def schedule_pdf():
     """导出课程表PDF"""
     data = request.json
+    if not data:
+        return jsonify({"code": 400, "msg": "请求数据为空"})
     cookies = data.get('cookies')
     year = data.get('year', 2025)
     term = data.get('term', 1)
@@ -759,20 +794,23 @@ def schedule_pdf():
     
     print(f"课程表PDF导出 - 学校: {school_name}, 使用URL: {base_url}, 年份: {year}, 学期: {term}, 姓名: {name}")
     
-    stu = Client(cookies=cookies, base_url=base_url, school_name=school_name, raspisanie=RASPISANIE, ignore_type=IGNORE_TYPE, detail_category_type=DETAIL_CATEGORY_TYPE, timeout=TIMEOUT)
-    result = stu.get_schedule_pdf(year, term, name, student_id, school_name, base_url)
-      # 如果返回PDF数据，设置正确的响应头
-    if result.get('code') == 1000 and 'data' in result:
-        return Response(
-            result['data'],
-            mimetype='application/pdf',
-            headers={
-                "Content-Disposition": f"attachment; filename=schedule_{year}_{term}.pdf",
-                "Content-Type": "application/pdf"
-            }
-        )
-    else:
-        return jsonify(result)
+    # 注意：get_schedule_pdf 方法已被注释掉，返回不支持
+    return jsonify({"code": 400, "msg": "get_schedule_pdf 方法当前不可用。该功能在开发中。"})
+    
+    # stu = Client(cookies=cookies, base_url=base_url, school_name=school_name, raspisanie=RASPISANIE, ignore_type=IGNORE_TYPE, detail_category_type=DETAIL_CATEGORY_TYPE, timeout=TIMEOUT)
+    # result = stu.get_schedule_pdf(year, term, name, student_id, school_name, base_url)
+    #   # 如果返回PDF数据，设置正确的响应头
+    # if result.get('code') == 1000 and 'data' in result:
+    #     return Response(
+    #         result['data'],
+    #         mimetype='application/pdf',
+    #         headers={
+    #             "Content-Disposition": f"attachment; filename=schedule_{year}_{term}.pdf",
+    #             "Content-Type": "application/pdf"
+    #         }
+    #     )
+    # else:
+    #     return jsonify(result)
 
 # 健康检查接口
 @app.route('/api/health', methods=['GET'])
@@ -848,6 +886,8 @@ def check_captcha_required(school_name):
 @handle_errors
 def evaluate_menu():
     data = request.json
+    if not data:
+        return jsonify({"code": 400, "msg": "请求数据为空"})
     cookies = data.get('cookies')
     school_name = data.get('school_name')
     base_url, error_response = get_base_url_from_params(data)
@@ -863,6 +903,8 @@ def evaluate_menu():
 @handle_errors
 def evaluate_detail():
     data = request.json
+    if not data:
+        return jsonify({"code": 400, "msg": "请求数据为空"})
     cookies = data.get('cookies')
     jxb_id = data.get('jxb_id')
     school_name = data.get('school_name')
@@ -879,6 +921,8 @@ def evaluate_detail():
 @handle_errors
 def evaluate_save():
     data = request.json
+    if not data:
+        return jsonify({"code": 400, "msg": "请求数据为空"})
     cookies = data.get('cookies')
     school_name = data.get('school_name')
     jxb_id = data.get('jxb_id')
@@ -929,6 +973,8 @@ def evaluate_save():
 @handle_errors
 def evaluate_submit():
     data = request.json
+    if not data:
+        return jsonify({"code": 400, "msg": "请求数据为空"})
     print(f"收到教学评价提交请求: {data}")
     cookies = data.get('cookies')
     school_name = data.get('school_name')
@@ -1012,6 +1058,8 @@ def get_campus_list():
     }
     """
     data = request.json
+    if not data:
+        return jsonify({"code": 400, "msg": "请求数据为空"})
     cookies = data.get('cookies')
     school_name = data.get('school_name')
     
@@ -1071,6 +1119,8 @@ def get_building_list():
     }
     """
     data = request.json
+    if not data:
+        return jsonify({"code": 400, "msg": "请求数据为空"})
     cookies = data.get('cookies')
     year = data.get('year')
     term = data.get('term')
@@ -1122,6 +1172,8 @@ def get_classroom():
     }
     """
     data = request.json
+    if not data:
+        return jsonify({"code": 400, "msg": "请求数据为空"})
     cookies = data.get('cookies')
     year = data.get('year')
     term = data.get('term')
