@@ -9,8 +9,15 @@ services:
     environment:
       - FLASK_ENV=production
       - PYTHONUNBUFFERED=1
+      # 微信小程序凭据通过项目根目录的 .env 注入（不会被提交到 Git）
+      - APPID=${APPID}
+      - APPSECRET=${APPSECRET}
+    env_file:
+      - .env
     volumes:
       - ./logs:/app/logs
+      # 若要持久化学生绑定数据，请取消下一行注释（自行保证目录权限）
+      # - ./data:/app/data
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5000/api/health"]

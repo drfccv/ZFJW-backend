@@ -3,3 +3,22 @@
 .dockerignore
 LICENSE
 *.md
+
+# 敏感及运行时数据，构建镜像时不拷贝
+.env
+.env.*
+data/
+*.log
+*.db
+*.sqlite
+*.sqlite3
+
+# 测试与临时文件
+temp.json
+kaptcha.png
+*_教务.json
+*教务.json
+__pycache__/
+*.py[cod]
+.venv/
+venv/

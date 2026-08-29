@@ -172,7 +172,23 @@ secrets.json
 *.crt
 *.p12
 
-# Database files
+# 环境变量（含微信小程序 AppID / AppSecret 等敏感凭据，必须通过 .env 配置）
+.env
+.env.*
+.env.local
+
+# 运行时产生的敏感数据目录（access_token、学生绑定数据库、日志等）
+data/
+
+# 学校教务系统探测 / 缓存等临时文件
+temp.json
+kaptcha.png
+*教务.json
+*_教务.json
+*edu.cn*.json
+fc0d*.json
+
+# 数据库文件
 *.db
 *.sqlite
 *.sqlite3

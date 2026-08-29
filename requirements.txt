@@ -1,4 +1,4 @@
-Flask
+flask
 flask-cors
 requests
 # 以下为 zfn_api 依赖
@@ -6,3 +6,6 @@ lxml
 pillow
 pyquery
 beautifulsoup4
+apscheduler
+# 生产环境可选：uWSGI
+uwsgi

@@ -8,18 +8,41 @@ import json
 import urllib3
 from urllib.parse import urlparse, urljoin
 
+# 加载 .env 文件（若存在），用于注入 APPID / APPSECRET 等敏感凭据
+def _load_dotenv(path: str = ".env"):
+    """轻量加载 .env 文件到 os.environ（不额外依赖 python-dotenv）"""
+    if not os.path.exists(path):
+        return
+    with open(path, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            key, _, value = line.partition("=")
+            key = key.strip()
+            value = value.strip().strip('"').strip("'")
+            if key and key not in os.environ:
+                os.environ[key] = value
+
+_load_dotenv()
+
 # 导入核心 API
 from zfn_api import Client
 from school_config import school_config_manager
+from push_store import PushStore
+from wechat_push import send_grade_push, send_account_abnormal
 
 app = Flask(__name__)
 CORS(app)
+
+# 全局存储实例
+push_store = PushStore()
 
 # 配置参数
 RASPISANIE = []
 IGNORE_TYPE = []
 DETAIL_CATEGORY_TYPE = []
-TIMEOUT = 30
+TIMEOUT = 60
 
 # 禁用SSL警告
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -1198,6 +1221,184 @@ def get_classroom():
     stu = Client(cookies=cookies, base_url=base_url, school_name=school_name, raspisanie=RASPISANIE, ignore_type=IGNORE_TYPE, detail_category_type=DETAIL_CATEGORY_TYPE, timeout=TIMEOUT)
     result = stu.get_empty_classroom(year, term, weeks, day_of_weeks, time_slots, campus_id=campus_id, school_name=school_name, base_url=base_url, building=building)
     return jsonify(result)
+
+# ========== 成绩推送 & 账号异常通知 相关路由 ==========
+
+@app.route('/api/bind_openid', methods=['POST'])
+@handle_errors
+def bind_openid():
+    """
+    绑定 openid 接口
+    用小程序 code 换取 openid，并保存绑定关系
+
+    请求参数:
+        code: 微信登录 code
+        school_name: 学校名称
+        sid: 学号
+    """
+    data = request.json
+    if not data:
+        return jsonify({"code": 400, "msg": "请求数据为空"})
+
+    code = data.get('code')
+    school_name = data.get('school_name')
+    sid = data.get('sid')
+
+    cookies = data.get('cookies')
+
+    if not all([code, school_name, sid, cookies]):
+        return jsonify({"code": 400, "msg": "参数不完整，需要 code, school_name, sid, cookies"})
+
+    import os as _os
+    APPID = _os.environ.get('APPID', '')
+    APPSECRET = _os.environ.get('APPSECRET', '')
+
+    if not APPID or not APPSECRET:
+        return jsonify({"code": 500, "msg": "服务器未配置微信凭据 APPID/APPSECRET，请通过环境变量设置"})
+
+    wx_url = (
+        "https://api.weixin.qq.com/sns/jscode2session"
+        f"?appid={APPID}&secret={APPSECRET}&js_code={code}"
+        "&grant_type=authorization_code"
+    )
+
+    try:
+        wx_resp = requests.get(wx_url, timeout=10)
+        wx_data = wx_resp.json()
+        print(f"[BindOpenid] 微信 jscode2session 响应: {wx_data}")
+
+        openid = wx_data.get('openid')
+        if not openid:
+            return jsonify({
+                "code": 999,
+                "msg": f"获取 openid 失败: {wx_data.get('errmsg', '未知错误')}"
+            })
+
+        push_store.save_binding(openid, school_name, sid, cookies)
+
+        return jsonify({
+            "code": 1000,
+            "data": {"openid": openid}
+        })
+    except Exception as e:
+        print(f"[BindOpenid] 请求微信接口出错: {e}")
+        return jsonify({"code": 999, "msg": f"换取 openid 失败: {str(e)}"})
+
+
+@app.route('/api/subscribe_grade_push', methods=['POST'])
+@handle_errors
+def subscribe_grade_push():
+    """
+    订阅成绩推送接口
+
+    请求参数:
+        openid: 微信 openid
+        school_name: 学校名称
+        template_id: 模板 ID（已废弃，后端固定使用 GRADE_TEMPLATE_ID）
+        subscribe_status: 订阅状态（accept/reject）
+    """
+    data = request.json
+    if not data:
+        return jsonify({"code": 400, "msg": "请求数据为空"})
+
+    openid = data.get('openid')
+    subscribe_status = data.get('subscribe_status', 'accept')
+    cookies = data.get('cookies')
+    school_name = data.get('school_name')
+    sid = data.get('sid')
+
+    if not all([openid, cookies]):
+        return jsonify({"code": 400, "msg": "参数不完整，需要 openid, cookies"})
+
+    # 检查或自动创建绑定
+    binding = push_store.get_binding(openid)
+    if not binding:
+        # 如果没有绑定记录，尝试从请求参数创建
+        if school_name and sid:
+            push_store.save_binding(openid, school_name, sid, cookies)
+            print(f"[Subscribe] 自动创建绑定: openid={openid}, school={school_name}, sid={sid}")
+        else:
+            return jsonify({"code": 400, "msg": "未找到绑定记录且未提供 school_name/sid，请先调用 bind_openid 或补全参数"})
+    else:
+        # 有绑定记录，刷新 cookies
+        push_store.save_binding(openid, binding["school_name"], binding["sid"], cookies)
+
+    # 固定使用成绩推送模板 ID，忽略前端传入的 template_id
+    from grade_push_task import GRADE_TEMPLATE_ID
+    push_store.save_subscription(openid, GRADE_TEMPLATE_ID, subscribe_status)
+
+    return jsonify({"code": 1000, "msg": "订阅成功"})
+
+
+@app.route('/api/unsubscribe_grade_push', methods=['POST'])
+@handle_errors
+def unsubscribe_grade_push():
+    """
+    取消成绩推送订阅接口
+
+    请求参数:
+        openid: 微信 openid
+    """
+    data = request.json
+    if not data:
+        return jsonify({"code": 400, "msg": "请求数据为空"})
+
+    openid = data.get('openid')
+
+    if not openid:
+        return jsonify({"code": 400, "msg": "参数不完整，需要 openid"})
+
+    push_store.delete_subscription(openid)
+    push_store.delete_binding(openid)
+
+    return jsonify({"code": 1000, "msg": "已取消订阅"})
+
+
+@app.route('/api/grade_push_status', methods=['GET', 'POST'])
+@handle_errors
+def grade_push_status():
+    """
+    查询成绩推送状态接口
+
+    请求参数（query string 或 JSON body）:
+        openid: 微信 openid
+    """
+    if request.method == 'POST':
+        data = request.json
+        openid = data.get('openid') if data else None
+    else:
+        openid = request.args.get('openid')
+
+    if not openid:
+        return jsonify({"code": 400, "msg": "参数不完整，需要 openid"})
+
+    # 查询订阅状态
+    subscription = push_store.get_subscription(openid)
+    subscribed = subscription is not None and subscription.get('status') == 'accept'
+
+    # 查询成绩快照
+    snapshots = push_store.get_all_grade_snapshots_by_openid(openid)
+    grade_snapshots = [
+        {
+            "year": s["year"],
+            "term": s["term"],
+            "update_time": s["update_time"]
+        }
+        for s in snapshots
+    ]
+
+    return jsonify({
+        "code": 1000,
+        "data": {
+            "subscribed": subscribed,
+            "grade_snapshots": grade_snapshots
+        }
+    })
+
+
+# 导入并初始化定时任务
+from grade_push_task import init_scheduler
+init_scheduler(app)
 
 if __name__ == '__main__':
     # 检查是否在生产环境

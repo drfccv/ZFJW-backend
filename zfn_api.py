@@ -120,7 +120,6 @@ class Client:
         if school_name and school_config_manager:
             config_url = school_config_manager.get_school_url(school_name, url_type)
             if config_url:
-                print(f"从配置获取URL: {config_url}")
                 return config_url
         
         # 优先使用传入的base_url参数
@@ -752,10 +751,6 @@ class Client:
         })
         
         try:
-            print(f"成绩查询 - URL: {url}")
-            print(f"成绩查询 - 数据: {data}")
-            print(f"成绩查询 - Headers: {grade_headers}")
-            
             req_grade = self.sess.post(
                 url,
                 headers=grade_headers,
@@ -764,11 +759,19 @@ class Client:
                 verify=False,
             )
             
-            print(f"成绩查询 - 响应状态码: {req_grade.status_code}")
-            print(f"成绩查询 - 响应头: {dict(req_grade.headers)}")
-            print(f"成绩查询 - 响应内容前500字符: {req_grade.text[:500]}")
-            
             if req_grade.status_code != 200:
+                # 非 200 状态码：先检查是否被重定向到了登录页面（session 过期）
+                if req_grade.status_code in (901, 302, 401):
+                    # 尝试从跳转后页面或响应体判断是否登录过期
+                    try:
+                        login_doc = pq(req_grade.text)
+                        if login_doc("h5").text() == "用户登录":
+                            return {"code": 1006, "msg": "未登录或已过期，请重新登录"}
+                    except Exception:
+                        pass
+                    # 如果响应 URL 变成了登录页地址，也判定为过期
+                    if "login" in req_grade.url.lower():
+                        return {"code": 1006, "msg": "未登录或已过期，请重新登录"}
                 return {"code": 2333, "msg": f"教务系统服务异常，状态码: {req_grade.status_code}"}
             
             doc = pq(req_grade.text)
@@ -778,15 +781,11 @@ class Client:
             # 解析JSON响应
             try:
                 grade = req_grade.json()
-                print(f"成绩查询 - JSON解析成功: {grade}")
             except json.JSONDecodeError as json_err:
-                print(f"成绩查询 - JSON解析失败: {json_err}")
-                print(f"成绩查询 - 原始响应: {req_grade.text}")
                 return {"code": 2333, "msg": f"响应格式错误: {str(json_err)}"}
             
             grade_items = grade.get("items")
             if not grade_items:
-                print(f"成绩查询 - 响应数据中缺少items字段，原始响应: {grade}")
                 return {"code": 1005, "msg": "获取内容为空"}
             
             result = {
@@ -909,7 +908,7 @@ class Client:
         try:
             print(f"详细成绩查询 - URL: {url}")
             print(f"详细成绩查询 - 数据: {data}")
-            
+
             req_grade = self.sess.post(
                 url,
                 headers=detail_headers,
@@ -918,9 +917,17 @@ class Client:
                 verify=False,
             )
             
-            print(f"详细成绩查询 - 响应状态码: {req_grade.status_code}")
-            
             if req_grade.status_code != 200:
+                # 非 200 状态码：先检查是否被重定向到了登录页面（session 过期）
+                if req_grade.status_code in (901, 302, 401):
+                    try:
+                        login_doc = pq(req_grade.text)
+                        if login_doc("h5").text() == "用户登录":
+                            return {"code": 1013, "msg": "登录过期，请重新登录"}
+                    except Exception:
+                        pass
+                    if "login" in req_grade.url.lower():
+                        return {"code": 1013, "msg": "登录过期，请重新登录"}
                 return {"code": 2333, "msg": f"教务系统响应异常，状态码: {req_grade.status_code}"}
             
             # 检查是否被重定向到登录页面
@@ -931,10 +938,7 @@ class Client:
             # 解析JSON响应
             try:
                 grade_response = req_grade.json()
-                print(f"详细成绩查询 - JSON解析成功")
             except json.JSONDecodeError as json_err:
-                print(f"详细成绩查询 - JSON解析失败: {json_err}")
-                print(f"详细成绩查询 - 原始响应前500字符: {req_grade.text[:500]}")
                 return {"code": 2333, "msg": f"响应格式错误: {str(json_err)}"}
             
             # 检查是否有数据
@@ -981,9 +985,6 @@ class Client:
             "queryModel.sortOrder": "asc",            "time": "0",  # 查询次数
         }
         try:
-            print(f"考试查询 - URL: {url}")
-            print(f"考试查询 - 数据: {data}")
-            
             req_grade = self.sess.post(
                 url,
                 headers=self.headers,
@@ -992,10 +993,17 @@ class Client:
                 verify=False,
             )
             
-            print(f"考试查询 - 响应状态码: {req_grade.status_code}")
-            print(f"考试查询 - 响应内容前500字符: {req_grade.text[:500]}")
-            
             if req_grade.status_code != 200:
+                # 非 200 状态码：先检查是否被重定向到了登录页面（session 过期）
+                if req_grade.status_code in (901, 302, 401):
+                    try:
+                        login_doc = pq(req_grade.text)
+                        if login_doc("h5").text() == "用户登录":
+                            return {"code": 1006, "msg": "未登录或已过期，请重新登录"}
+                    except Exception:
+                        pass
+                    if "login" in req_grade.url.lower():
+                        return {"code": 1006, "msg": "未登录或已过期，请重新登录"}
                 return {"code": 2333, "msg": "教务系统服务异常"}
             doc = pq(req_grade.text)
             if doc("h5").text() == "用户登录":
@@ -1004,11 +1012,9 @@ class Client:
             # 解析JSON响应
             try:
                 grade = req_grade.json()
-                print(f"考试查询 - JSON解析成功: {grade}")
             except json.JSONDecodeError as json_err:
-                print(f"考试查询 - JSON解析失败: {json_err}")
-                print(f"考试查询 - 原始响应: {req_grade.text}")
                 return {"code": 2333, "msg": f"响应格式错误: {str(json_err)}"}
+                
                 
             grade = req_grade.json()
             grade_items = grade.get("items")
@@ -1636,10 +1642,6 @@ class Client:
         })
         
         try:
-            print(f"通知消息查询 - URL: {url}")
-            print(f"通知消息查询 - 数据: {data}")
-            print(f"通知消息查询 - Headers: {notification_headers}")
-            
             req_notification = self.sess.post(
                 url,
                 headers=notification_headers,
@@ -1647,10 +1649,6 @@ class Client:
                 timeout=self.timeout,
                 verify=False,
             )
-            
-            print(f"通知消息查询 - 响应状态码: {req_notification.status_code}")
-            print(f"通知消息查询 - 响应头: {dict(req_notification.headers)}")
-            print(f"通知消息查询 - 响应内容前500字符: {req_notification.text[:500]}")
             
             if req_notification.status_code != 200:
                 return {"code": 2333, "msg": f"教务系统服务异常，状态码: {req_notification.status_code}"}
@@ -1662,15 +1660,11 @@ class Client:
             # 解析JSON响应
             try:
                 notifications = req_notification.json()
-                print(f"通知消息查询 - JSON解析成功: {notifications}")
             except json.JSONDecodeError as json_err:
-                print(f"通知消息查询 - JSON解析失败: {json_err}")
-                print(f"通知消息查询 - 原始响应: {req_notification.text}")
                 return {"code": 2333, "msg": f"响应格式错误: {str(json_err)}"}
             
             notification_items = notifications.get("items")
             if notification_items is None:
-                print(f"通知消息查询 - 响应数据中缺少items字段，原始响应: {notifications}")
                 return {"code": 1005, "msg": "获取内容为空"}
             
             result = [
@@ -2844,7 +2838,7 @@ class Client:
             panel_params['fxzgf'] = panel.get('data-fxzgf', '')
         # 获取表单action
         form = soup.find('form', {'id': 'ajaxForm1'})
-        action = form.get('action') if form else ''
+        action = str(form.get('action', '')) if form else ''
         if action and not action.startswith('http') and self.base_url:
             action = urljoin(self.base_url, action)
         # 获取课程信息
@@ -2855,7 +2849,13 @@ class Client:
         is_evaluated = False  # 标记是否已评价
         tr_elements = soup.find_all('tr', {'class': 'tr-xspj'})
         for i, tr in enumerate(tr_elements):
-            content_td = tr.find('td', style=lambda x: x and 'width: 400px' in x)
+            # 查找包含指定样式的 td
+            content_td = None
+            for td in tr.find_all('td'):
+                style_attr = td.get('style', '')
+                if style_attr and 'width: 400px' in str(style_attr):
+                    content_td = td
+                    break
             if not content_td:
                 continue
             content = content_td.get_text(strip=True).replace('*', '').strip()
@@ -2871,22 +2871,22 @@ class Client:
                 zsmbmcb_id = tr.get('data-zsmbmcb_id', '')
                 pfdjdmb_id = tr.get('data-pfdjdmb_id', '')
                 if has_input:
-                    input_name = input_elem.get('name', '')
+                    input_name = str(input_elem.get('name', ''))
                     if not input_name and pjzbxm_id:
-                        input_name = pjzbxm_id
-                    min_score = input_elem.get('data-zxfz', '30')
-                    max_score = input_elem.get('data-zdfz', '100')
-                    placeholder = input_elem.get('placeholder', '')
-                    current_value = input_elem.get('value', '')
-                    weight = tr.get('data-qzz', '0.2')
+                        input_name = str(pjzbxm_id)
+                    min_score = str(input_elem.get('data-zxfz', '30'))
+                    max_score = str(input_elem.get('data-zdfz', '100'))
+                    placeholder = str(input_elem.get('placeholder', ''))
+                    current_value = str(input_elem.get('value', ''))
+                    weight = str(tr.get('data-qzz', '0.2'))
                     evaluation_items.append({
                         "content": content,
                         "input_name": input_name,
-                        "min_score": int(min_score),
-                        "max_score": int(max_score),
+                        "min_score": int(min_score) if min_score else 30,
+                        "max_score": int(max_score) if max_score else 100,
                         "placeholder": placeholder,
                         "current_value": current_value,
-                        "weight": float(weight),
+                        "weight": float(weight) if weight else 0.2,
                         "pjzbxm_id": pjzbxm_id,
                         "zsmbmcb_id": zsmbmcb_id,
                         "pfdjdmb_id": pfdjdmb_id,
@@ -2901,8 +2901,14 @@ class Client:
                         "pfdjdmb_id": pfdjdmb_id,
                         "has_input": False
                     })
-        comment_textarea = soup.find('textarea', {'id': lambda x: x and x.endswith('_py')})
-        comment_name = comment_textarea.get('name', 'py') if comment_textarea else 'py'
+        # 查找以 _py 结尾的 textarea
+        comment_textarea = None
+        for textarea in soup.find_all('textarea'):
+            textarea_id = textarea.get('id', '')
+            if textarea_id and str(textarea_id).endswith('_py'):
+                comment_textarea = textarea
+                break
+        comment_name = str(comment_textarea.get('name', 'py')) if comment_textarea else 'py'
         # 获取评语内容（已评价或未评价）
         comment_value = ""
         py_div = soup.find('div', id='pyDiv')
@@ -3391,8 +3397,6 @@ class Client:
             print(f"空教室查询 - URL: {url}")
             print(f"空教室查询 - 数据: {data}")
             print(f"空教室查询 - 周次位掩码: weeks={week_list} -> zcd={zcd}")
-            print(f"空教室查询 - 节次位掩码: slots={slot_list} -> jcd={jcd}")
-            
             req = self.sess.post(
                 url,
                 headers=self.headers,
@@ -3400,9 +3404,6 @@ class Client:
                 timeout=self.timeout,
                 verify=False,
             )
-            
-            print(f"空教室查询 - 响应状态码: {req.status_code}")
-            print(f"空教室查询 - 响应内容前500字符: {req.text[:500]}")
             
             if req.status_code != 200:
                 return {"code": 2333, "msg": f"教务系统服务异常，状态码: {req.status_code}"}
@@ -3415,11 +3416,9 @@ class Client:
             # 解析JSON响应
             try:
                 response = req.json()
-                print(f"空教室查询 - JSON解析成功: {response}")
             except json.JSONDecodeError as json_err:
-                print(f"空教室查询 - JSON解析失败: {json_err}")
-                print(f"空教室查询 - 原始响应: {req.text}")
                 return {"code": 2333, "msg": f"响应格式错误: {str(json_err)}"}
+            
             
             items = response.get("items")
             if not items:
@@ -3477,9 +3476,9 @@ if __name__ == "__main__":
     import sys
     import os
 
-    base_url = "https://xxxx.xxx.edu.cn"  # 教务系统URL
-    sid = "123456"  # 学号
-    password = "abc654321"  # 密码
+    base_url = "https://xxxx.xxx.edu.cn"  # 教务系统URL（替换为你的学校）
+    sid = "123456"  # 学号（替换为你的学号）
+    password = "abc654321"  # 密码（替换为你的密码）
     lgn_cookies = (
         {
             # "insert_cookie": "",

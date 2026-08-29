@@ -36,8 +36,10 @@ RUN chown -R www:www /app
 # 切换到非root用户
 USER www
 
-# 运行项目（生产环境使用uWSGI）
-CMD ["uwsgi", "--ini", "uwsgi.ini"]
+# 默认启动方式：直接运行 Flask 应用（开发/轻量部署）
+CMD ["python", "app.py"]
+# 如需生产环境使用 uWSGI（更高并发），请改为：
+# CMD ["uwsgi", "--ini", "uwsgi.ini"]
 
 # 服务暴露的端口
 EXPOSE 5000
