@@ -1,45 +1,46 @@
-# 由 Dockerpacks 自动生成
-# 本 Dockerfile 可能不能完全覆盖您的项目需求，若遇到问题请根据实际情况修改或询问客服
+# 使用基于 alpine 的 python 官方镜像（版本与 pyproject.toml 的 requires-python 一致）
+FROM python:3.12-alpine
 
-# 使用基于 alpine 的 python 官方镜像
-FROM python:3-alpine
+# 引入官方 uv 二进制，按 uv.lock 精确安装依赖
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
-# 设置容器内的当前目录
 WORKDIR /app
 
-# 安装系统依赖（uWSGI需要编译工具）
-RUN apk add --no-cache gcc musl-dev linux-headers
+# uv 运行行为：
+#   UV_COMPILE_BYTECODE  安装时预编译字节码，加快容器启动
+#   UV_LINK_MODE=copy    容器内无法硬链接缓存，改为复制（消除告警）
+#   UV_PYTHON_DOWNLOADS  只使用镜像自带的 Python，不额外下载
+ENV UV_COMPILE_BYTECODE=1 \
+    UV_LINK_MODE=copy \
+    UV_PYTHON_DOWNLOADS=never
 
-# 使用速度更快的国内镜像
-RUN python3 -m pip config set global.trusted-host mirrors.cloud.tencent.com && \
-    python3 -m pip config set global.index-url http://mirrors.cloud.tencent.com/pypi/simple
+# 先只拷贝依赖清单再安装，利用 Docker 层缓存：
+# 只要依赖没变，改动业务代码时不会重新安装依赖
+COPY pyproject.toml uv.lock .python-version ./
+RUN uv sync --frozen --no-dev
 
-# 将 requirements.txt 复制到容器中
-COPY requirements.txt requirements.txt
-
-# 安装依赖
-RUN python3 -m pip install -r requirements.txt
-
-# 将所有文件拷贝到容器中（在 .dockerignore 中的文件除外）
+# 拷贝项目其余文件（.dockerignore 中排除的除外）
 COPY . .
 
-# 创建日志目录
-RUN mkdir -p logs
+# 让容器内直接使用虚拟环境中的 python
+ENV PATH="/app/.venv/bin:$PATH"
 
-# 创建非root用户
-RUN addgroup -g 1000 www && \
-    adduser -D -s /bin/sh -u 1000 -G www www
+# 创建日志目录、非 root 用户并移交属主
+RUN mkdir -p logs && \
+    addgroup -g 1000 www && \
+    adduser -D -s /bin/sh -u 1000 -G www www && \
+    chown -R www:www /app
 
-# 设置文件权限
-RUN chown -R www:www /app
-
-# 切换到非root用户
 USER www
 
-# 默认启动方式：直接运行 Flask 应用（开发/轻量部署）
-CMD ["python", "app.py"]
-# 如需生产环境使用 uWSGI（更高并发），请改为：
-# CMD ["uwsgi", "--ini", "uwsgi.ini"]
-
-# 服务暴露的端口
 EXPOSE 5000
+
+# 默认启动方式：直接运行 Flask 应用（开发 / 轻量部署）
+CMD ["python", "app.py"]
+
+# 说明：本项目依赖均提供 musllinux 预编译 wheel（含 lxml），无需编译工具，故未安装 gcc。
+# 若日后引入需要编译的包导致构建失败，取消下面一行的注释即可：
+# RUN apk add --no-cache gcc musl-dev linux-headers
+#
+# 若需要更高并发，可改用 gunicorn（先加进 pyproject.toml 依赖，再替换上面的 CMD）：
+# CMD ["gunicorn", "-b", "0.0.0.0:5000", "-w", "4", "app:app"]

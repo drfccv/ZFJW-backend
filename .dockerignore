@@ -4,6 +4,12 @@
 LICENSE
 *.md
 
+# 本地虚拟环境（绝不能拷进镜像，否则会覆盖容器内已安装的 .venv）
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+
 # 敏感及运行时数据，构建镜像时不拷贝
 .env
 .env.*
@@ -18,7 +24,3 @@ temp.json
 kaptcha.png
 *_教务.json
 *教务.json
-__pycache__/
-*.py[cod]
-.venv/
-venv/

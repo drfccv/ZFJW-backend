@@ -1,0 +1,32 @@
+[project]
+name = "zfjw-backend"
+version = "2.0.0"
+description = "正方教务系统第三方接口 API（Flask）"
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "MIT" }
+authors = [{ name = "drfccv" }]
+
+# 依赖均对应代码中的直接 import；版本下限取当前已验证可用的版本
+dependencies = [
+    "flask>=3.0",           # zfjw/app.py、zfjw/routes/*、zfjw/docs.py
+    "flask-cors>=4.0",      # zfjw/app.py
+    "requests>=2.31",       # zfjw/api/*、zfjw/routes/*、zfjw/wechat/*
+    "urllib3>=2.0",         # zfjw/app.py（禁用 SSL 告警）
+    "pyquery>=2.0",         # zfjw/api/*（页面解析）
+    "lxml>=5.0",            # pyquery 的解析后端，项目重度依赖，显式声明
+    "beautifulsoup4>=4.12", # zfjw/api/evaluate.py
+    "apscheduler>=3.10",    # zfjw/tasks/grade_push.py
+    "rsa>=4.9",             # zfjw/api/helpers.py（登录密码加密）
+]
+
+[dependency-groups]
+dev = ["pyflakes>=3.0"]
+
+[project.urls]
+Homepage = "https://github.com/drfccv/ZFJW-backend"
+Issues = "https://github.com/drfccv/ZFJW-backend/issues"
+
+[tool.uv]
+# 这是应用而非库，无需构建/安装项目自身，uv sync 只负责装依赖
+package = false

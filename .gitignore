@@ -81,7 +81,9 @@ profile_default/
 ipython_config.py
 
 # pyenv
-.python-version
+# 说明：标准 Python .gitignore 默认忽略 .python-version（视为个人偏好），
+# 但本项目用它锁定运行版本（uv 据此装 Python、Dockerfile 据此选择基础镜像），
+# 属于项目规格，故需要提交，这里不忽略。
 
 # pipenv
 Pipfile.lock
