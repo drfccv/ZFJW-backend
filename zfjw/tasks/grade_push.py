@@ -5,15 +5,14 @@ grade_push_task.py — 定时成绩检测与推送
 import json
 import hashlib
 import os
-import time
 import traceback
 from datetime import datetime
 
 from apscheduler.schedulers.background import BackgroundScheduler
 
-from push_store import PushStore
-from zfn_api import Client
-from wechat_push import send_grade_push, send_account_abnormal
+from zfjw.api import Client
+from zfjw.store.push_store import PushStore
+from zfjw.wechat.push import send_grade_push, send_account_abnormal
 
 # 成绩推送模板 ID（模板 ID 不属于隐私）
 GRADE_TEMPLATE_ID = "2KVe7leduIgeB6CinL8WwKq3OYx_Ddf3h81wG0yIaUE"
@@ -119,7 +118,6 @@ def check_grades_and_push():
             )
 
             year_terms = _get_recent_year_terms()
-            has_new_grades = False
             has_any_success = False
             cookies_expired = False
 
@@ -173,7 +171,6 @@ def check_grades_and_push():
                             new_added_courses.append(c)
 
                     if new_added_courses:
-                        has_new_grades = True
                         print(f"[GradePush] 用户 {openid} {year}-{term} 发现 {len(new_added_courses)} 门新课程")
                         for course in new_added_courses:
                             try:

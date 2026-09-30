@@ -3,7 +3,8 @@ wechat_push.py — 消息推送工具
 封装微信订阅消息发送逻辑
 """
 import requests
-from wechat_token import get_access_token
+
+from zfjw.wechat.token import get_access_token
 
 
 def send_subscribe_message(openid: str, template_id: str, data: dict, page: str = ""):

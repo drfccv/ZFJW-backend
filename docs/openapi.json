@@ -1,0 +1,1744 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "ZFJW Backend API",
+    "version": "2.0.0",
+    "description": "正方教务系统后端 API。\n\n**认证方式**：登录接口返回 `cookies`，后续接口在请求体中携带即可。\n\n**通用参数**：需要已登录会话的接口都接受 `cookies` 以及 `school_name` / `base_url`（二者至少提供一个）。\n\n**返回码含义**：\n- `1000` — 成功\n- `400` — 请求参数不完整或为空\n- `1001` — 获取验证码成功（需继续调用 /api/login_with_kaptcha）\n- `1002` — 用户名或密码不正确\n- `1004` — 验证码输入错误\n- `1005` — 获取内容为空\n- `1006` — 未登录或登录已过期，请重新登录\n- `1014` — 无当前学年学期数据\n- `2333` — 教务系统服务异常或学校配置不完整\n- `998` — 教务系统返回了业务错误提示\n- `999` — 服务器内部错误"
+  },
+  "servers": [
+    {
+      "url": "/",
+      "description": "当前服务"
+    }
+  ],
+  "tags": [
+    {
+      "name": "认证"
+    },
+    {
+      "name": "学业（信息 / 成绩 / 考试 / 课表）"
+    },
+    {
+      "name": "选课"
+    },
+    {
+      "name": "教学评价"
+    },
+    {
+      "name": "教室"
+    },
+    {
+      "name": "学校配置"
+    },
+    {
+      "name": "成绩推送"
+    },
+    {
+      "name": "系统"
+    }
+  ],
+  "paths": {
+    "/api/academia": {
+      "post": {
+        "tags": [
+          "学业（信息 / 成绩 / 考试 / 课表）"
+        ],
+        "summary": "查询学业生涯情况（当前不可用）",
+        "operationId": "academic.get_academia_post",
+        "responses": {
+          "200": {
+            "description": "统一响应格式",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/AuthParams"
+                  },
+                  {
+                    "type": "object",
+                    "required": [
+                      "cookies"
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/bind_openid": {
+      "post": {
+        "tags": [
+          "成绩推送"
+        ],
+        "summary": "绑定 openid 接口",
+        "operationId": "push.bind_openid_post",
+        "responses": {
+          "200": {
+            "description": "统一响应格式",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        },
+        "description": "用小程序 code 换取 openid，并保存绑定关系\n\n请求参数:\n    code: 微信登录 code\n    school_name: 学校名称\n    sid: 学号",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/AuthParams"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "code": {
+                        "type": "string",
+                        "description": "微信登录 code（wx.login 获取）"
+                      },
+                      "sid": {
+                        "type": "string",
+                        "example": "20240202932",
+                        "description": "学号"
+                      }
+                    },
+                    "required": [
+                      "code",
+                      "cookies",
+                      "school_name",
+                      "sid"
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/block_courses": {
+      "post": {
+        "tags": [
+          "选课"
+        ],
+        "summary": "获取板块课程列表",
+        "operationId": "course.block_courses_post",
+        "responses": {
+          "200": {
+            "description": "统一响应格式",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/AuthParams"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "block": {
+                        "type": "integer",
+                        "description": "板块序号（block_id 的别名）"
+                      },
+                      "block_id": {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "板块序号"
+                      },
+                      "term": {
+                        "type": "integer",
+                        "default": 1,
+                        "example": 1,
+                        "description": "学期：1=第一学期，2=第二学期，0=整个学年"
+                      },
+                      "year": {
+                        "type": "integer",
+                        "default": 2025,
+                        "example": 2025,
+                        "description": "学年，如 2025"
+                      }
+                    },
+                    "required": [
+                      "cookies"
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/building_list": {
+      "post": {
+        "tags": [
+          "教室"
+        ],
+        "summary": "获取教学楼列表和节次信息接口",
+        "operationId": "classroom.get_building_list_post",
+        "responses": {
+          "200": {
+            "description": "统一响应格式",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        },
+        "description": "请求参数：\n- cookies: 登录凭证（必填）\n- year: 学年，如2025（必填）\n- term: 学期，1-第一学期，2-第二学期（必填）\n- campus_id: 校区ID，默认\"1\"，可通过/api/campus_list获取（可选）\n- school_name: 学校名称（可选，但需与base_url二选一）\n- base_url: 学校教务系统地址（可选，但需与school_name二选一）\n\n返回示例：\n{\n    \"code\": 1000,\n    \"msg\": \"获取教学楼列表成功\",\n    \"data\": {\n        \"year\": 2025,\n        \"term\": 2,\n        \"campus_id\": \"1\",\n        \"building_count\": 8,\n        \"buildings\": [\n            {\n                \"building_code\": \"32\",\n                \"building_name\": \"教学楼（一）\",\n                \"campus_id\": \"1\"\n            }\n        ],\n        \"time_slots\": [\n            {\n                \"period\": \"上午\",\n                \"time\": \"08:00-08:45\",\n                \"slot_number\": 1,\n                \"total_slots\": 4\n            }\n        ]\n    }\n}",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/AuthParams"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "campus_id": {
+                        "type": "string",
+                        "default": "1",
+                        "example": "1",
+                        "description": "校区 ID，可通过 /api/campus_list 获取"
+                      },
+                      "term": {
+                        "type": "integer",
+                        "example": 1,
+                        "description": "学期：1=第一学期，2=第二学期，0=整个学年"
+                      },
+                      "year": {
+                        "type": "integer",
+                        "example": 2025,
+                        "description": "学年，如 2025"
+                      }
+                    },
+                    "required": [
+                      "cookies",
+                      "term",
+                      "year"
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/campus_list": {
+      "post": {
+        "tags": [
+          "教室"
+        ],
+        "summary": "获取校区列表接口",
+        "operationId": "classroom.get_campus_list_post",
+        "responses": {
+          "200": {
+            "description": "统一响应格式",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        },
+        "description": "请求参数：\n- cookies: 登录凭证（必填）\n- school_name: 学校名称（可选，但需与base_url二选一）\n- base_url: 学校教务系统地址（可选，但需与school_name二选一）\n\n返回示例：\n{\n    \"code\": 1000,\n    \"msg\": \"获取校区列表成功\",\n    \"data\": {\n        \"count\": 5,\n        \"campuses\": [\n            {\n                \"campus_id\": \"1\",\n                \"campus_name\": \"主校区\",\n                \"is_default\": true\n            },\n            {\n                \"campus_id\": \"2\",\n                \"campus_name\": \"浔东校区\",\n                \"is_default\": false\n            }\n        ]\n    }\n}",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/AuthParams"
+                  },
+                  {
+                    "type": "object",
+                    "required": [
+                      "cookies"
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/classroom": {
+      "post": {
+        "tags": [
+          "教室"
+        ],
+        "summary": "空教室查询接口",
+        "operationId": "classroom.get_classroom_post",
+        "responses": {
+          "200": {
+            "description": "统一响应格式",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        },
+        "description": "请求参数：\n- cookies: 登录凭证（必填）\n- year: 学年，如2025（必填）\n- term: 学期，1-第一学期，2-第二学期（必填）\n- weeks: 周次，可以是单个数字(如3)、列表(如[1,2])或逗号分隔字符串(如\"1,2\")（必填）\n- day_of_weeks: 星期几，可以是单个数字(如1)、列表(如[1,3])或逗号分隔字符串(如\"1,3\")，1=周一，7=周日（必填）\n- time_slots: 节次，可以是单个数字(如1)、列表(如[2,3])或范围字符串(如\"2-3\")（必填）\n- campus_id: 校区ID，默认\"1\"，可通过/api/campus_list获取（可选）\n- building: 教学楼名称（可选）\n- school_name: 学校名称（可选，但需与base_url二选一）\n- base_url: 学校教务系统地址（可选，但需与school_name二选一）\n\n示例：\n{\n    \"cookies\": \"...\",\n    \"school_name\": \"九江学院\",\n    \"year\": 2025,\n    \"term\": 2,\n    \"weeks\": 3,\n    \"day_of_weeks\": \"1,3\",\n    \"time_slots\": \"2-3\",\n    \"campus_id\": \"1\"\n}",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/AuthParams"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "building": {
+                        "type": "string",
+                        "description": "教学楼名称，不传表示全部"
+                      },
+                      "campus_id": {
+                        "type": "string",
+                        "default": "1",
+                        "example": "1",
+                        "description": "校区 ID，可通过 /api/campus_list 获取"
+                      },
+                      "day_of_weeks": {
+                        "type": "string",
+                        "example": "1,3",
+                        "description": "星期，1=周一…7=周日，支持单个/数组/逗号分隔"
+                      },
+                      "term": {
+                        "type": "integer",
+                        "example": 1,
+                        "description": "学期：1=第一学期，2=第二学期，0=整个学年"
+                      },
+                      "time_slots": {
+                        "type": "string",
+                        "example": "2-3",
+                        "description": "节次，支持单个数字、数组或范围字符串"
+                      },
+                      "weeks": {
+                        "type": "string",
+                        "example": 3,
+                        "description": "周次，支持单个数字、数组或逗号分隔字符串"
+                      },
+                      "year": {
+                        "type": "integer",
+                        "example": 2025,
+                        "description": "学年，如 2025"
+                      }
+                    },
+                    "required": [
+                      "cookies",
+                      "day_of_weeks",
+                      "term",
+                      "time_slots",
+                      "weeks",
+                      "year"
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/course_classes": {
+      "post": {
+        "tags": [
+          "选课"
+        ],
+        "summary": "获取指定课程的教学班列表",
+        "operationId": "course.course_classes_post",
+        "responses": {
+          "200": {
+            "description": "统一响应格式",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/AuthParams"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "course_id": {
+                        "type": "string",
+                        "description": "课程号"
+                      },
+                      "term": {
+                        "type": "integer",
+                        "default": 1,
+                        "example": 1,
+                        "description": "学期：1=第一学期，2=第二学期，0=整个学年"
+                      },
+                      "year": {
+                        "type": "integer",
+                        "default": 2025,
+                        "example": 2025,
+                        "description": "学年，如 2025"
+                      }
+                    },
+                    "required": [
+                      "cookies",
+                      "course_id"
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/drop_course": {
+      "post": {
+        "tags": [
+          "选课"
+        ],
+        "summary": "退课接口",
+        "operationId": "course.drop_course_post",
+        "responses": {
+          "200": {
+            "description": "统一响应格式",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/AuthParams"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "course_id": {
+                        "type": "string",
+                        "description": "课程号"
+                      },
+                      "do_id": {
+                        "type": "string",
+                        "description": "选课批次 / 教学班标识"
+                      },
+                      "term": {
+                        "type": "integer",
+                        "default": 1,
+                        "example": 1,
+                        "description": "学期：1=第一学期，2=第二学期，0=整个学年"
+                      },
+                      "year": {
+                        "type": "integer",
+                        "default": 2025,
+                        "example": 2025,
+                        "description": "学年，如 2025"
+                      }
+                    },
+                    "required": [
+                      "cookies",
+                      "course_id",
+                      "do_id"
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/evaluate_detail": {
+      "post": {
+        "tags": [
+          "教学评价"
+        ],
+        "summary": "获取单个教学班的评价详情（含评价项与 input_name）",
+        "operationId": "evaluate.evaluate_detail_post",
+        "responses": {
+          "200": {
+            "description": "统一响应格式",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/AuthParams"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "jxb_id": {
+                        "type": "string",
+                        "description": "教学班 ID"
+                      }
+                    },
+                    "required": [
+                      "cookies",
+                      "jxb_id"
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/evaluate_menu": {
+      "post": {
+        "tags": [
+          "教学评价"
+        ],
+        "summary": "获取教学评价列表",
+        "operationId": "evaluate.evaluate_menu_post",
+        "responses": {
+          "200": {
+            "description": "统一响应格式",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/AuthParams"
+                  },
+                  {
+                    "type": "object",
+                    "required": [
+                      "cookies"
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/evaluate_save": {
+      "post": {
+        "tags": [
+          "教学评价"
+        ],
+        "summary": "保存教学评价（暂存，不提交）",
+        "operationId": "evaluate.evaluate_save_post",
+        "responses": {
+          "200": {
+            "description": "统一响应格式",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/AuthParams"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "comment": {
+                        "type": "string",
+                        "default": "",
+                        "description": "评语文本"
+                      },
+                      "evaluation_data": {
+                        "type": "object",
+                        "example": {
+                          "items": [
+                            {
+                              "input_name": "pjzbxm_0001",
+                              "score": "100"
+                            }
+                          ]
+                        },
+                        "description": "评价项分数，形如 {\"items\": [{\"input_name\": \"pjzbxm_xxx\", \"score\": \"100\"}]}"
+                      },
+                      "jxb_id": {
+                        "type": "string",
+                        "description": "教学班 ID"
+                      },
+                      "kch_id": {
+                        "type": "string",
+                        "description": "课程 ID"
+                      }
+                    },
+                    "required": [
+                      "cookies",
+                      "evaluation_data",
+                      "jxb_id",
+                      "kch_id",
+                      "school_name"
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/evaluate_submit": {
+      "post": {
+        "tags": [
+          "教学评价"
+        ],
+        "summary": "提交教学评价",
+        "operationId": "evaluate.evaluate_submit_post",
+        "responses": {
+          "200": {
+            "description": "统一响应格式",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/AuthParams"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "comment": {
+                        "type": "string",
+                        "default": "",
+                        "description": "评语文本"
+                      },
+                      "evaluation_data": {
+                        "type": "object",
+                        "example": {
+                          "items": [
+                            {
+                              "input_name": "pjzbxm_0001",
+                              "score": "100"
+                            }
+                          ]
+                        },
+                        "description": "评价项分数，形如 {\"items\": [{\"input_name\": \"pjzbxm_xxx\", \"score\": \"100\"}]}"
+                      },
+                      "jxb_id": {
+                        "type": "string",
+                        "description": "教学班 ID"
+                      },
+                      "kch_id": {
+                        "type": "string",
+                        "description": "课程 ID"
+                      }
+                    },
+                    "required": [
+                      "cookies",
+                      "evaluation_data",
+                      "jxb_id",
+                      "kch_id",
+                      "school_name"
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/exam": {
+      "post": {
+        "tags": [
+          "学业（信息 / 成绩 / 考试 / 课表）"
+        ],
+        "summary": "查询考试安排",
+        "operationId": "academic.get_exam_post",
+        "responses": {
+          "200": {
+            "description": "统一响应格式",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/AuthParams"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "term": {
+                        "type": "integer",
+                        "example": 1,
+                        "description": "学期：1=第一学期，2=第二学期，0=整个学年"
+                      },
+                      "year": {
+                        "type": "integer",
+                        "example": 2025,
+                        "description": "学年，如 2025"
+                      }
+                    },
+                    "required": [
+                      "cookies",
+                      "term",
+                      "year"
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/get_captcha": {
+      "post": {
+        "tags": [
+          "认证"
+        ],
+        "summary": "获取登录验证码图片",
+        "operationId": "auth.get_captcha_post",
+        "responses": {
+          "200": {
+            "description": "统一响应格式",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        },
+        "description": "返回 base64 图片及后续登录所需的 csrf_token / 公钥 / cookies。",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/AuthParams"
+                  },
+                  {
+                    "type": "object"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/grade": {
+      "post": {
+        "tags": [
+          "学业（信息 / 成绩 / 考试 / 课表）"
+        ],
+        "summary": "查询成绩",
+        "operationId": "academic.get_grade_post",
+        "responses": {
+          "200": {
+            "description": "统一响应格式",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        },
+        "description": "不传 year / term 时由服务端按当前学年学期推断。",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/AuthParams"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "term": {
+                        "type": "integer",
+                        "example": 1,
+                        "description": "学期：1=第一学期，2=第二学期，0=整个学年"
+                      },
+                      "year": {
+                        "type": "integer",
+                        "example": 2025,
+                        "description": "学年，如 2025"
+                      }
+                    },
+                    "required": [
+                      "cookies"
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/grade_detail": {
+      "post": {
+        "tags": [
+          "学业（信息 / 成绩 / 考试 / 课表）"
+        ],
+        "summary": "详细成绩查询接口，用于查询期末成绩（含平时分）",
+        "operationId": "academic.get_grade_detail_post",
+        "responses": {
+          "200": {
+            "description": "统一响应格式",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        },
+        "description": "请求参数:\n    cookies: 登录后的cookies\n    year: 学年，如2024\n    term: 学期，1-第一学期，2-第二学期，0-整个学年\n    school_name: 学校名称（可选，用于自动获取base_url）\n    base_url: 学校教务系统地址（可选，如果提供school_name则自动获取）",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/AuthParams"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "term": {
+                        "type": "integer",
+                        "default": 0,
+                        "example": 1,
+                        "description": "学期：1=第一学期，2=第二学期，0=整个学年"
+                      },
+                      "year": {
+                        "type": "integer",
+                        "example": 2025,
+                        "description": "学年，如 2025"
+                      }
+                    },
+                    "required": [
+                      "cookies",
+                      "year"
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/grade_push_status": {
+      "get": {
+        "tags": [
+          "成绩推送"
+        ],
+        "summary": "查询成绩推送状态接口",
+        "operationId": "push.grade_push_status_get",
+        "responses": {
+          "200": {
+            "description": "统一响应格式",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        },
+        "description": "请求参数（query string 或 JSON body）:\n    openid: 微信 openid",
+        "parameters": [
+          {
+            "name": "openid",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "微信小程序 openid"
+            }
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "成绩推送"
+        ],
+        "summary": "查询成绩推送状态接口",
+        "operationId": "push.grade_push_status_post",
+        "responses": {
+          "200": {
+            "description": "统一响应格式",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        },
+        "description": "请求参数（query string 或 JSON body）:\n    openid: 微信 openid",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "openid": {
+                    "type": "string",
+                    "description": "微信小程序 openid"
+                  }
+                },
+                "required": [
+                  "openid"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/health": {
+      "get": {
+        "tags": [
+          "系统"
+        ],
+        "summary": "健康检查",
+        "operationId": "system.health_check_get",
+        "responses": {
+          "200": {
+            "description": "统一响应格式",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/info": {
+      "post": {
+        "tags": [
+          "学业（信息 / 成绩 / 考试 / 课表）"
+        ],
+        "summary": "获取个人信息与学籍",
+        "operationId": "academic.get_info_post",
+        "responses": {
+          "200": {
+            "description": "统一响应格式",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/AuthParams"
+                  },
+                  {
+                    "type": "object",
+                    "required": [
+                      "cookies"
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/login": {
+      "post": {
+        "tags": [
+          "认证"
+        ],
+        "summary": "密码登录（自动识别是否需要验证码）",
+        "operationId": "auth.login_post",
+        "responses": {
+          "200": {
+            "description": "统一响应格式",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        },
+        "description": "若学校需要验证码，返回 `code=1001` 与验证码图片，需再调用\n`/api/login_with_kaptcha` 完成登录；否则直接返回 `code=1000` 与 cookies。",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/AuthParams"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "password": {
+                        "type": "string",
+                        "format": "password",
+                        "description": "密码（明文，服务端 RSA 加密后提交）"
+                      },
+                      "sid": {
+                        "type": "string",
+                        "example": "20240202932",
+                        "description": "学号"
+                      }
+                    },
+                    "required": [
+                      "password",
+                      "sid"
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/login_with_kaptcha": {
+      "post": {
+        "tags": [
+          "认证"
+        ],
+        "summary": "提交验证码完成登录",
+        "operationId": "auth.login_with_kaptcha_post",
+        "responses": {
+          "200": {
+            "description": "统一响应格式",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        },
+        "description": "使用 `/api/login` 返回的 csrf_token / cookies / modulus / exponent\n以及用户识别的验证码，完成登录并返回 cookies。",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/AuthParams"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "csrf_token": {
+                        "type": "string",
+                        "description": "登录页解析出的 CSRF token（来自 /api/login 响应）"
+                      },
+                      "exponent": {
+                        "type": "string",
+                        "description": "RSA 公钥 exponent（来自 /api/login 响应）"
+                      },
+                      "kaptcha": {
+                        "type": "string",
+                        "description": "用户识别的图形验证码"
+                      },
+                      "modulus": {
+                        "type": "string",
+                        "description": "RSA 公钥 modulus（来自 /api/login 响应）"
+                      },
+                      "password": {
+                        "type": "string",
+                        "format": "password",
+                        "description": "密码（明文，服务端 RSA 加密后提交）"
+                      },
+                      "sid": {
+                        "type": "string",
+                        "example": "20240202932",
+                        "description": "学号"
+                      }
+                    },
+                    "required": [
+                      "cookies",
+                      "csrf_token",
+                      "exponent",
+                      "kaptcha",
+                      "modulus",
+                      "password",
+                      "sid"
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/notifications": {
+      "post": {
+        "tags": [
+          "学业（信息 / 成绩 / 考试 / 课表）"
+        ],
+        "summary": "查询通知消息（停补换课等）",
+        "operationId": "academic.get_notifications_post",
+        "responses": {
+          "200": {
+            "description": "统一响应格式",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/AuthParams"
+                  },
+                  {
+                    "type": "object",
+                    "required": [
+                      "cookies"
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/schedule": {
+      "post": {
+        "tags": [
+          "学业（信息 / 成绩 / 考试 / 课表）"
+        ],
+        "summary": "获取课表（优先直连实现，失败时回退到 Client.get_schedule）。",
+        "operationId": "academic.get_schedule_post",
+        "responses": {
+          "200": {
+            "description": "统一响应格式",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        },
+        "description": "响应结构与旧版完全一致，未做任何字段调整。",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/AuthParams"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "term": {
+                        "type": "integer",
+                        "example": 1,
+                        "description": "学期：1=第一学期，2=第二学期，0=整个学年"
+                      },
+                      "year": {
+                        "type": "integer",
+                        "example": 2025,
+                        "description": "学年，如 2025"
+                      }
+                    },
+                    "required": [
+                      "cookies",
+                      "term",
+                      "year"
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/schedule_pdf": {
+      "post": {
+        "tags": [
+          "学业（信息 / 成绩 / 考试 / 课表）"
+        ],
+        "summary": "导出课程表PDF",
+        "operationId": "academic.schedule_pdf_post",
+        "responses": {
+          "200": {
+            "description": "统一响应格式",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/AuthParams"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "default": "导出"
+                      },
+                      "term": {
+                        "type": "integer",
+                        "default": 1,
+                        "example": 1,
+                        "description": "学期：1=第一学期，2=第二学期，0=整个学年"
+                      },
+                      "year": {
+                        "type": "integer",
+                        "default": 2025,
+                        "example": 2025,
+                        "description": "学年，如 2025"
+                      }
+                    },
+                    "required": [
+                      "cookies"
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/school/{school_name}": {
+      "get": {
+        "tags": [
+          "学校配置"
+        ],
+        "summary": "获取指定学校的配置信息",
+        "operationId": "school.get_school_config_get",
+        "responses": {
+          "200": {
+            "description": "统一响应格式",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "school_name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "学校名称"
+          }
+        ]
+      }
+    },
+    "/api/school/{school_name}/captcha-required": {
+      "get": {
+        "tags": [
+          "学校配置"
+        ],
+        "summary": "检查指定学校是否需要验证码",
+        "operationId": "school.check_captcha_required_get",
+        "responses": {
+          "200": {
+            "description": "统一响应格式",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "school_name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "学校名称"
+          }
+        ]
+      }
+    },
+    "/api/schools": {
+      "get": {
+        "tags": [
+          "学校配置"
+        ],
+        "summary": "获取所有支持的学校列表",
+        "operationId": "school.get_schools_get",
+        "responses": {
+          "200": {
+            "description": "统一响应格式",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/select_course": {
+      "post": {
+        "tags": [
+          "选课"
+        ],
+        "summary": "选课接口",
+        "operationId": "course.select_course_post",
+        "responses": {
+          "200": {
+            "description": "统一响应格式",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/AuthParams"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "course_id": {
+                        "type": "string",
+                        "description": "课程号"
+                      },
+                      "do_id": {
+                        "type": "string",
+                        "description": "选课批次 / 教学班标识"
+                      },
+                      "kklxdm": {
+                        "type": "string",
+                        "default": "1",
+                        "example": "1",
+                        "description": "课程类别代码"
+                      },
+                      "sid": {
+                        "type": "string",
+                        "example": "20240202932",
+                        "description": "学号"
+                      },
+                      "term": {
+                        "type": "integer",
+                        "default": 1,
+                        "example": 1,
+                        "description": "学期：1=第一学期，2=第二学期，0=整个学年"
+                      },
+                      "year": {
+                        "type": "integer",
+                        "default": 2024,
+                        "example": 2025,
+                        "description": "学年，如 2025"
+                      }
+                    },
+                    "required": [
+                      "cookies",
+                      "course_id",
+                      "do_id",
+                      "sid"
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/selected_courses": {
+      "post": {
+        "tags": [
+          "选课"
+        ],
+        "summary": "获取已选课程列表",
+        "operationId": "course.selected_courses_post",
+        "responses": {
+          "200": {
+            "description": "统一响应格式",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/AuthParams"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "term": {
+                        "type": "integer",
+                        "default": 1,
+                        "example": 1,
+                        "description": "学期：1=第一学期，2=第二学期，0=整个学年"
+                      },
+                      "year": {
+                        "type": "integer",
+                        "default": 2024,
+                        "example": 2025,
+                        "description": "学年，如 2025"
+                      }
+                    },
+                    "required": [
+                      "cookies"
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/subscribe_grade_push": {
+      "post": {
+        "tags": [
+          "成绩推送"
+        ],
+        "summary": "订阅成绩推送接口",
+        "operationId": "push.subscribe_grade_push_post",
+        "responses": {
+          "200": {
+            "description": "统一响应格式",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        },
+        "description": "请求参数:\n    openid: 微信 openid\n    school_name: 学校名称\n    template_id: 模板 ID（已废弃，后端固定使用 GRADE_TEMPLATE_ID）\n    subscribe_status: 订阅状态（accept/reject）",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/AuthParams"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "openid": {
+                        "type": "string",
+                        "description": "微信小程序 openid"
+                      },
+                      "sid": {
+                        "type": "string",
+                        "example": "20240202932",
+                        "description": "学号"
+                      },
+                      "subscribe_status": {
+                        "type": "string",
+                        "default": "accept",
+                        "example": "accept",
+                        "description": "订阅状态"
+                      }
+                    },
+                    "required": [
+                      "cookies",
+                      "openid"
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/unsubscribe_grade_push": {
+      "post": {
+        "tags": [
+          "成绩推送"
+        ],
+        "summary": "取消成绩推送订阅接口",
+        "operationId": "push.unsubscribe_grade_push_post",
+        "responses": {
+          "200": {
+            "description": "统一响应格式",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        },
+        "description": "请求参数:\n    openid: 微信 openid",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "openid": {
+                    "type": "string",
+                    "description": "微信小程序 openid"
+                  }
+                },
+                "required": [
+                  "openid"
+                ]
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AuthParams": {
+        "type": "object",
+        "properties": {
+          "cookies": {
+            "type": "object",
+            "example": {
+              "JSESSIONID": "XXXXXXXX",
+              "route": "XXXXXXXXXXXXXXXX"
+            },
+            "description": "登录接口返回的 cookies 字典（须含 route 等负载均衡路由 cookie）"
+          },
+          "school_name": {
+            "type": "string",
+            "example": "九江学院",
+            "description": "学校名称，与 base_url 二选一（推荐）"
+          },
+          "base_url": {
+            "type": "string",
+            "example": "https://zhjw1.jju.edu.cn",
+            "description": "教务系统地址，与 school_name 二选一"
+          }
+        },
+        "description": "通用鉴权参数；cookies 为登录接口返回，school_name / base_url 至少提供一个"
+      },
+      "ApiResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "业务状态码",
+            "example": 1000
+          },
+          "msg": {
+            "type": "string",
+            "description": "提示信息",
+            "example": "操作成功"
+          },
+          "data": {
+            "type": "object",
+            "description": "业务数据，随接口而异"
+          }
+        },
+        "required": [
+          "code",
+          "msg"
+        ]
+      }
+    }
+  },
+  "x-spec-url": "openapi.json"
+}

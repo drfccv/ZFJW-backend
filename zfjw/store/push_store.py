@@ -9,6 +9,8 @@ import json
 import time
 import traceback
 
+from zfjw import settings
+
 
 class PushStore:
     """推送相关数据的 SQLite 存储管理器"""
@@ -18,11 +20,10 @@ class PushStore:
         初始化存储管理器
 
         Args:
-            db_path: 数据库文件路径，默认使用本文件所在目录下的 data/push_data.db
+            db_path: 数据库文件路径，默认使用项目 data/push_data.db
         """
         if db_path is None:
-            base_dir = os.path.dirname(os.path.abspath(__file__))
-            db_path = os.path.join(base_dir, "data", "push_data.db")
+            db_path = os.path.join(settings.DATA_DIR, "push_data.db")
         self.db_path = db_path
         self._ensure_dir()
         self.init_db()

@@ -1,0 +1,108 @@
+{
+  "defaults": {
+    "path_prefix": "",
+    "requires_captcha": true,
+    "urls": {
+      "login": "xtgl/login_slogin.html",
+      "key": "xtgl/login_getPublicKey.html",
+      "kaptcha": "kaptcha",
+      "info": "xsxxxggl/xsxxwh_cxCkDgxsxx.html?gnmkdm=N100801",
+      "grade": "cjcx/cjcx_cxXsgrcj.html?doType=query&gnmkdm=N305005",
+      "grade_detail": "cjcx/cjcx_cxXsKccjList.html?gnmkdm=N305007&layout=default",
+      "exam": "kwgl/kscx_cxXsksxxIndex.html?doType=query&gnmkdm=N358105",
+      "schedule": "kbcx/xskbcx_cxXsgrkb.html?gnmkdm=N2151",
+      "schedule_index": "kbcx/xskbcx_cxXskbcxIndex.html?gnmkdm=N2151&layout=default",
+      "academia": "xsxy/xsxyqk_cxXsxyqkIndex.html?gnmkdm=N105515&layout=default",
+      "academia_info": "xsxy/xsxyqk_cxJxzxjhxfyqKcxx.html?gnmkdm=N105515",
+      "notifications": "xtgl/index_cxDbsy.html?doType=query",
+      "selected_courses": "xsxk/zzxkyzb_cxZzxkYzbChoosedDisplay.html?gnmkdm=N253512",
+      "block_courses_index": "xsxk/zzxkyzb_cxZzxkYzbIndex.html?gnmkdm=N253512&layout=default",
+      "block_courses": "xsxk/zzxkyzb_cxZzxkYzbPartDisplay.html?gnmkdm=N253512",
+      "course_classes": "xsxk/zzxkyzbjk_cxJxbWithKchZzxkYzb.html?gnmkdm=N253512",
+      "select_course": "xsxk/zzxkyzb_xkBcZyZzxkYzb.html?gnmkdm=N253512",
+      "drop_course": "xsxk/zzxkyzb_tuikBcZzxkYzb.html?gnmkdm=N253512",
+      "evaluate": "xspjgl/xspj_cxXspjIndex.html?doType=query&gnmkdm=N401605",
+      "evaluate_detail": "xspjgl/xspj_cxXspjDisplay.html?gnmkdm=N401605",
+      "evaluate_submit": "xspjgl/xspj_tjXspj.html?gnmkdm=N401605",
+      "evaluate_save": "xspjgl/xspj_bcXspj.html?gnmkdm=N401605",
+      "schedule_pdf": "kbdy/bjkbdy_cxXnxqsfkz.html?gnmkdm=N2151",
+      "academia_pdf": "bysxxcx/xscjzbdy_dyXscjzbView.html",
+      "classroom_index": "cdjy/cdjy_cxKxcdlb.html?gnmkdm=N2155&layout=default",
+      "classroom": "cdjy/cdjy_cxKxcdlb.html?doType=query&gnmkdm=N2155",
+      "building_list": "cdjy/cdjy_cxXqjc.html"
+    },
+    "parameters": {
+      "grade_year_offset": -1,
+      "term_mapping": {
+        "1": "",
+        "2": "12"
+      },
+      "term_formula": "term ** 2 * 3",
+      "default_params": {
+        "jg_id": "14",
+        "zyh_id": "1401",
+        "zyfx_id": "wfx",
+        "bh_id": "124140102",
+        "xqh_id": "1",
+        "xkxskcgskg": "1",
+        "kklxdm": "10",
+        "xkkz_id": "376AC1914F6D7A4EE0630AECC1DAD910"
+      }
+    }
+  },
+  "schools": {
+    "九江学院": {
+      "school_code": "jju",
+      "base_url": "https://zhjw1.jju.edu.cn",
+      "path_prefix": "jwglxt/",
+      "description": "九江学院教务系统"
+    },
+    "南昌职业大学": {
+      "school_code": "nvu",
+      "base_url": "https://jwxt.nvu.edu.cn",
+      "requires_captcha": false,
+      "description": "南昌职业大学教务系统"
+    },
+    "南京工业大学": {
+      "school_code": "njtech",
+      "base_url": "https://jwgl.njtech.edu.cn",
+      "requires_captcha": false,
+      "description": "南京工业大学教务系统"
+    },
+    "西安邮电大学": {
+      "school_code": "xupt",
+      "base_url": "http://www.zfjw.xupt.edu.cn",
+      "path_prefix": "jwglxt/",
+      "url_overrides": {
+        "evaluate": "xspjgl/xspj_cxXspjIndex.html?doType=query&gnmkdm=N401605",
+        "evaluate_detail": "xspjgl/xspj_cxXspjDisplay.html?gnmkdm=N401605",
+        "evaluate_submit": "xspjgl/xspj_tjXspj.html?gnmkdm=N401605",
+        "evaluate_save": "xspjgl/xspj_bcXspj.html?gnmkdm=N401605"
+      },
+      "description": "西安邮电大学教务系统"
+    },
+    "福建江夏学院": {
+      "school_code": "fjjxu",
+      "base_url": "https://jwxt.fjjxu.edu.cn",
+      "path_prefix": "jwglxt/",
+      "requires_captcha": false,
+      "url_overrides": {
+        "evaluate": "xspjgl/xspj_cxXspjIndex.html?doType=query&gnmkdm=N401605",
+        "evaluate_detail": "xspjgl/xspj_cxXspjDisplay.html?gnmkdm=N401605",
+        "evaluate_submit": "xspjgl/xspj_tjXspj.html?gnmkdm=N401605",
+        "evaluate_save": "xspjgl/xspj_bcXspj.html?gnmkdm=N401605"
+      },
+      "description": "福建江夏学院教务系统"
+    },
+    "浙江农林大学暨阳学院": {
+      "school_code": "zjyc",
+      "base_url": "https://jwxt.zjyc.edu.cn",
+      "description": "浙江农林大学暨阳学院教务系统"
+    },
+    "广东工程职业技术学院": {
+      "school_code": "gdep",
+      "base_url": "https://zf.gdep.edu.cn",
+      "description": "广东工程职业技术学院教务系统"
+    }
+  }
+}

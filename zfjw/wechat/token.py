@@ -7,36 +7,17 @@ import json
 import time
 import requests
 
-
-# 加载 .env 文件（若存在），用于注入 APPID / APPSECRET 等敏感凭据
-def _load_dotenv(path: str = ".env"):
-    """轻量加载 .env 文件到 os.environ（不额外依赖 python-dotenv）"""
-    if not os.path.exists(path):
-        return
-    with open(path, "r", encoding="utf-8") as f:
-        for line in f:
-            line = line.strip()
-            if not line or line.startswith("#") or "=" not in line:
-                continue
-            key, _, value = line.partition("=")
-            key = key.strip()
-            value = value.strip().strip('"').strip("'")
-            if key and key not in os.environ:
-                os.environ[key] = value
-
-_load_dotenv()
+from zfjw import settings
 
 # 微信小程序配置
 # 重要：出于安全考虑，此处不再内置任何凭据。
 # AppID / AppSecret 必须通过环境变量 APPID / APPSECRET 提供（参考 .env.example）。
+# .env 的加载统一由 zfjw.settings 负责，避免多处重复实现。
 _DEFAULT_APPID = os.environ.get("APPID", "")
 _DEFAULT_APPSECRET = os.environ.get("APPSECRET", "")
 
-# access_token 缓存文件路径（基于本文件目录，确保 gunicorn 多 worker 下路径一致）
-_TOKEN_CACHE_FILE = os.path.join(
-    os.path.dirname(os.path.abspath(__file__)),
-    "data", "access_token.json"
-)
+# access_token 缓存文件路径（统一放在项目 data/ 目录，确保多 worker 下路径一致）
+_TOKEN_CACHE_FILE = os.path.join(settings.DATA_DIR, "access_token.json")
 
 
 def _ensure_cache_dir():
@@ -65,7 +46,7 @@ def _read_cached_token():
         if access_token and now < expires_at - 200:
             return access_token
         else:
-            print(f"[WechatToken] 缓存 token 已过期")
+            print("[WechatToken] 缓存 token 已过期")
             return None
     except Exception as e:
         print(f"[WechatToken] 读取缓存文件出错: {e}")
